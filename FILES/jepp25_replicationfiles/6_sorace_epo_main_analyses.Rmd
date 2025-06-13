@@ -1,0 +1,3544 @@
+---
+title: "epo_main"
+author: "Miriam Sorace"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+---
+
+
+```{r, include=FALSE, message = F, warning=F,echo = F, error = FALSE}
+library(renv)
+# include=FALSE means that this particular R code chunk will not be included in the final report. 
+if (!("knitr" %in% installed.packages())) {
+  install.packages('knitr', repos='http://cran.rstudio.org')}
+library(knitr)
+
+if (!("formatR" %in% installed.packages())) {
+  install.packages("formatR")}
+library(formatR)
+
+knitr::opts_chunk$set(echo = F, error = FALSE, warning = FALSE, message = FALSE, fig.align = "center", tidy=TRUE) 
+
+```
+
+# Data Load
+
+```{r, echo = F, error = FALSE, warning = FALSE, message = FALSE}
+load("ees14clean.RData")
+load("ees19clean.RData")
+load("ees24clean.RData")
+```
+
+
+```{r}
+# Remove NAs from the issue variables
+ees14_no_na <- ees14 %>%
+  filter(!is.na(issue_state_int) & !is.na(issue_redistr) & !is.na(issue_samesex) & !is.na(issue_immig) & !is.na(issue_clim))
+
+# Data preprocessing: convert issue variables to factors
+issue_vars <- grep("^issue_", names(ees14_no_na), value = TRUE)
+ees14_no_na[issue_vars] <- lapply(ees14_no_na[issue_vars], factor)
+
+# Remove NAs from the issue variables
+ees19_no_na <- ees19 %>%
+  filter(!is.na(issue_state_int) & !is.na(issue_redistr) & !is.na(issue_samesex) & !is.na(issue_immig) & !is.na(issue_clim))
+
+# Data preprocessing: convert issue variables to factors
+issue_vars <- grep("^issue_", names(ees19_no_na), value = TRUE)
+ees19_no_na[issue_vars] <- lapply(ees19_no_na[issue_vars], factor)
+
+
+# Remove NAs from the issue variables
+ees24_no_na <- ees24 %>%
+  filter(!is.na(issue_redistr) & !is.na(issue_samesex) & !is.na(issue_immig) & !is.na(issue_clim))
+
+# Data preprocessing: convert issue variables to factors
+issue_vars <- grep("^issue_", names(ees24_no_na), value = TRUE)
+ees24_no_na[issue_vars] <- lapply(ees24_no_na[issue_vars], factor)
+
+```
+
+
+# Violin plots by Country
+## 2014
+
+```{r}
+create_violin <- function(data, issue_var, group, weight_var) {
+  
+  # Mapping issue variable names to nice names
+  issue_names <- c(
+    issue_state_int = "State Intervention",
+    issue_redistr = "Redistribution",
+    issue_samesex = "Same-Sex Marriage",
+    issue_immig = "Immigration",
+    issue_clim = "Environment/Climate"
+  )
+  
+  # Weighted violin plot
+  p <- ggplot(data, aes(x = !!sym(group), y = as.numeric(!!sym(issue_var)), weight = !!sym(weight_var))) +
+    geom_violin(trim = FALSE, fill = "gray85") +  # Change fill color to light gray
+    stat_summary(fun = "mean", geom = "point", color = "navy", size = 2) +  # Add navy square for the mean
+    labs(x = " ", y = paste0("Left (0) - Right (10) Position", "-",issue_names[[issue_var]]), 
+         title = 2014, 
+         subtitle = " ") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "plain", size = rel(2.5)),
+          axis.text.y = element_text(face = "plain", size = rel(2.5)),
+          axis.title.x = element_text(face = "plain", size = rel(2)),
+          axis.title.y = element_text(face = "plain", size = rel(2)),
+          plot.title = element_text(size = rel(3), face = "bold"),
+          plot.subtitle = element_text(size = rel(2.5), face = "bold"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "none") +
+    ylim(0, 10) + # Set y-axis limits to 0-10
+    coord_flip()
+  # Save the plot with the desired filename
+  file_name <- paste0("violin_", issue_var, "_14.pdf")
+  ggsave(file_name, plot = p, width = 20, height=15)
+}
+
+# Create violin plots for each issue variable with weight_var
+plots <- lapply(issue_vars, function(issue_var) {
+  create_violin(ees14_no_na, issue_var, "countryname", "wt")
+})
+
+# Print the plots
+print(plots)
+
+
+```
+
+
+## 2019
+
+```{r}
+create_violin <- function(data, issue_var, group, weight_var) {
+  
+  # Mapping issue variable names to nice names
+  issue_names <- c(
+    issue_state_int = "State Intervention",
+    issue_redistr = "Redistribution",
+    issue_samesex = "Same-Sex Marriage",
+    issue_immig = "Immigration",
+    issue_clim = "Environment/Climate"
+  )
+  
+  # Weighted violin plot
+  p <- ggplot(data, aes(x = !!sym(group), y = as.numeric(!!sym(issue_var)), weight = !!sym(weight_var))) +
+    geom_violin(trim = FALSE, fill = "gray85") +  # Change fill color to light gray
+    stat_summary(fun = "mean", geom = "point", color = "navy", size = 2) +  # Add navy square for the mean
+    labs(x = " ", y = paste0("Left (0) - Right (10) Position", "-",issue_names[[issue_var]]), 
+         title = 2019, 
+         subtitle = " ") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "plain", size = rel(2.5)),
+          axis.text.y = element_text(face = "plain", size = rel(2.5)),
+          axis.title.x = element_text(face = "plain", size = rel(2)),
+          axis.title.y = element_text(face = "plain", size = rel(2)),
+          plot.title = element_text(size = rel(3), face = "bold"),
+          plot.subtitle = element_text(size = rel(2.5), face = "bold"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "none") +
+    ylim(0, 10)+ # Set y-axis limits to 0-10
+    coord_flip()
+  # Save the plot with the desired filename
+  file_name <- paste0("violin_", issue_var, "_19.pdf")
+  ggsave(file_name, plot = p, width = 20, height=15)
+}
+
+# Create violin plots for each issue variable with weight_var
+plots <- lapply(issue_vars, function(issue_var) {
+  create_violin(ees19_no_na, issue_var, "countryname", "wt")
+})
+
+# Print the plots
+print(plots)
+
+
+```
+
+## 2024
+
+```{r}
+create_violin <- function(data, issue_var, group, weight_var) {
+  
+  # Mapping issue variable names to nice names
+  issue_names <- c(
+    issue_state_int = "State Intervention",
+    issue_redistr = "Redistribution",
+    issue_samesex = "Same-Sex Marriage",
+    issue_immig = "Immigration",
+    issue_clim = "Environment/Climate"
+  )
+  
+  # Weighted violin plot
+  p <- ggplot(data, aes(x = !!sym(group), y = as.numeric(!!sym(issue_var)), weight = !!sym(weight_var))) +
+    geom_violin(trim = FALSE, fill = "gray85") +  # Change fill color to light gray
+    stat_summary(fun = "mean", geom = "point", color = "navy", size = 2) +  # Add navy square for the mean
+    labs(x = " ", y = paste0("Left (0) - Right (10) Position", "-",issue_names[[issue_var]]), 
+         title = 2024, 
+         subtitle = " ") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "plain", size = rel(2.5)),
+          axis.text.y = element_text(face = "plain", size = rel(2.5)),
+          axis.title.x = element_text(face = "plain", size = rel(2)),
+          axis.title.y = element_text(face = "plain", size = rel(2)),
+          plot.title = element_text(size = rel(3), face = "bold"),
+          plot.subtitle = element_text(size = rel(2.5), face = "bold"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "none") +
+    ylim(0, 10)  + # Set y-axis limits to 0-10
+    coord_flip()
+  # Save the plot with the desired filename
+  file_name <- paste0("violin_", issue_var, "_24.pdf")
+  ggsave(file_name, plot = p, width = 20, height=15)
+}
+
+# Create violin plots for each issue variable with weight_var
+plots <- lapply(issue_vars, function(issue_var) {
+  create_violin(ees24_no_na, issue_var, "countryname", "wt")
+})
+
+# Print the plots
+print(plots)
+
+
+```
+
+
+# Box-Scatter Over-Time
+## 2014-2024
+### Data Load
+
+```{r}
+load("combdata.RData")
+```
+
+### Plots
+
+```{r}
+
+issue_vars <- c("avg_issue_state_int", "avg_issue_redistr", "avg_issue_samesex", "avg_issue_immig", "avg_issue_clim")
+
+create_boxtime <- function(data, issue_var, group) {
+  
+  # Mapping issue variable names to nice names
+  issue_names <- c(
+    avg_issue_state_int = "State Intervention",
+    avg_issue_redistr = "Redistribution",
+    avg_issue_samesex = "Same-Sex Marriage",
+    avg_issue_immig = "Immigration",
+    avg_issue_clim = "Environment/Climate"
+  )
+  
+  # plot
+  p <- ggplot(combdata, aes(x = factor(year), y = !!sym(issue_var))) +
+  # Boxplot layer
+  geom_boxplot(fill = "gray", alpha = 0.3, outlier.shape = NA, width = 0.4) +
+  # Country labels with increased jitter
+  geom_text(aes(label = countryname), 
+            size = rel(5), 
+            color = "gray45", 
+            position = position_jitter(width = 0.28, height = 0.05)) +
+  # Axis settings
+  scale_x_discrete(limits = c("2014", "2019", "2024")) +
+  labs(
+    x = "",
+    y = "Weighted Country Average",
+    title = "Country-Level Weighted Averages",
+    subtitle = issue_names[[issue_var]]
+  ) +
+  theme_minimal() +
+    theme(axis.text.y = element_text(size = rel(1.8)),
+          axis.text.x = element_text(size = rel(1.8)),
+          axis.title.y =element_text(size = rel(1.8)),
+          plot.title = element_text(size = rel(3)),
+          plot.subtitle = element_text(size = rel(2.5)),
+          legend.position = "none")
+  # Save the plot with the desired filename
+  file_name <- paste0("boxtime_", issue_var, ".pdf")
+  ggsave(file_name, plot = p, width = 20, height=15)
+}
+
+# Create plots for each issue variable with weight_var
+plots <- lapply(issue_vars, function(issue_var) {
+  create_boxtime(combdata, issue_var, "countryname")
+})
+
+# Print the plots
+print(plots)
+
+```
+
+
+
+# Mean Differences Plots
+## 2014
+
+```{r, results = 'asis', fig.width=15, fig.height=28}
+# in loop
+ # Mapping issue variable names to nice names
+  issue_names <- c(
+    issue_state_int = "Attitudes on State Intervention in the Economy",
+    issue_redistr = "Attitudes on Redistribution",
+    issue_samesex = "Attitudes on Same-Sex Marriage",
+    issue_immig = "Attitudes on Immigration",
+    issue_clim = "Attitudes on Environmental Protection"
+  )
+# Remove NAs from the issue variables
+ees14_no_na <- ees14 %>%
+  filter(!is.na(issue_state_int) & !is.na(issue_redistr) & !is.na(issue_samesex) & !is.na(issue_immig) & !is.na(issue_clim))
+
+# Function to create Tukey plot
+create_tukey_plot <- function(issue_name) {
+  # Perform ANOVA
+  issue_anova <- aov(as.formula(paste0(issue_name, " ~ countryname")), data = ees14_no_na, weights = wt)
+  
+  # Perform Tukey's HSD test
+  issue_tukey <- TukeyHSD(issue_anova)
+  
+  # Extract data from the Tukey's test results
+  issue_tukey_data <- issue_tukey$countryname
+  issue_tukey_df <- as.data.frame(issue_tukey_data)
+  issue_tukey_df$comparison <- rownames(issue_tukey_df)
+  issue_tukey_df$comparison <- factor(issue_tukey_df$comparison, levels = rev(unique(issue_tukey_df$comparison)))
+  rownames(issue_tukey_df) <- NULL
+  
+  # Create a new variable indicating whether lwr and upr have different signs
+  issue_tukey_df$sign_diff <- ifelse(sign(issue_tukey_df$lwr) != sign(issue_tukey_df$upr), "grey", "black")
+  
+  # Plot
+  plot <- ggplot(issue_tukey_df, aes(x = comparison, y = diff, ymin = lwr, ymax = upr, color = sign_diff)) +
+    geom_point(size = 1) +  # Reduce size of points
+    geom_errorbar(width = 0.2, aes(color = sign_diff)) +  # Color CIs based on sign_diff
+    geom_hline(yintercept = 0, linetype = "dashed", color = "grey") +
+    theme_classic() +
+    theme(axis.title.y = element_blank(),  # Eliminate y axis title
+          axis.title.x = element_text(size = 13),
+          axis.text.y = element_text(size = 9),  # Make y axis labels smaller
+          axis.text.x = element_text(size = 12, angle = 45, vjust = 0.5, hjust = 1),
+          plot.title = element_text(size = 15, face = "bold"),
+          plot.subtitle = element_text(size = 14, face = "bold")) + 
+    labs(y = "Country Pair Mean Difference", title = issue_names[issue_name], subtitle = "EES - 2014") +  # Change x axis title and add title
+    coord_flip() +
+    scale_color_manual(values = c("grey", "black"), guide = FALSE) +
+    scale_y_continuous(breaks = seq(-3.5, 3.5, by = 0.5))
+  
+  return(plot)
+}
+
+# Use mapply to create plots for each issue
+plots <- mapply(create_tukey_plot, names(issue_names), SIMPLIFY = FALSE)
+
+# Print the plots
+print(plots)
+
+
+```
+
+### Heatmaps
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Data Preparation
+issue_names <- c(
+  issue_state_int = "State Intervention",
+  issue_redistr = "Redistribution",
+  issue_samesex = "Same-Sex Marriage",
+  issue_immig = "Immigration",
+  issue_clim = "Environmental/Climate Protection"
+)
+
+# Remove NAs from the issue variables
+ees14_no_na <- ees14 %>%
+  filter(!is.na(issue_state_int) & !is.na(issue_redistr) & !is.na(issue_samesex) & !is.na(issue_immig) & !is.na(issue_clim))
+
+
+# Function to perform Tukey's HSD test and extract the results
+get_tukey_data <- function(issue_name, data) {
+  
+  # Perform ANOVA
+  issue_anova <- aov(as.formula(paste0(issue_name, " ~ countryname")), data = data, weights = wt)
+  
+  # Perform Tukey's HSD test
+  issue_tukey <- TukeyHSD(issue_anova)
+  
+  # Extract data from the Tukey's test results
+  issue_tukey_df <- as.data.frame(issue_tukey$countryname)
+  issue_tukey_df$comparison <- rownames(issue_tukey_df)
+  
+  # Separate the comparison into two country columns
+  issue_tukey_df <- issue_tukey_df %>%
+    separate(comparison, into = c("country1", "country2"), sep = "-")
+  
+  # Add the issue name
+  issue_tukey_df$issue <- issue_name
+  
+  return(issue_tukey_df)
+}
+
+# Apply the function to all issues
+tukey_results <- purrr::map_dfr(names(issue_names), get_tukey_data, data = ees14_no_na)
+
+
+# issue: state intervention
+tukey_results_stateint <- tukey_results %>%
+    filter(issue == "issue_state_int")
+# Calculate absolute difference
+tukey_results_stateint$abs_diff <- abs(tukey_results_stateint$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_stateint <- tukey_results_stateint %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+
+# Create the heatmap
+p<-ggplot(tukey_results_stateint, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+  theme(
+          axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+        panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "State Intervention in the Economy", subtitle = "EES 2014", x = "", y = "", fill = "Abs. Size of Significant Differences")
+
+# Save the plot
+ggsave("heat_stateint_14.pdf", plot = p, width = 10, height = 9)
+
+
+
+# issue: redistribution
+tukey_results_redist <- tukey_results %>%
+    filter(issue == "issue_redistr")
+# Calculate absolute difference
+tukey_results_redist$abs_diff <- abs(tukey_results_redist$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_redist <- tukey_results_redist %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<-ggplot(tukey_results_redist, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+  theme(
+          axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Economic Redistribution", subtitle = "EES 2014", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_redist_14.pdf", plot = p, width = 10, height = 9)
+
+# issue: samesex
+tukey_results_samesex <- tukey_results %>%
+    filter(issue == "issue_samesex")
+# Calculate absolute difference
+tukey_results_samesex$abs_diff <- abs(tukey_results_samesex$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_samesex <- tukey_results_samesex %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 8
+
+# Create the heatmap
+p<-ggplot(tukey_results_samesex, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+  theme(
+          axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Same-Sex Marriage", subtitle = "EES 2014", x = "", y = "", fill = "Abs. Size of Significant Differences")
+
+# Save the plot
+ggsave("heat_samesex_14.pdf", plot = p, width = 10, height = 9)
+
+# issue: immigration
+tukey_results_immig <- tukey_results %>%
+    filter(issue == "issue_immig")
+# Calculate absolute difference
+tukey_results_immig$abs_diff <- abs(tukey_results_immig$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_immig <- tukey_results_immig %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<-ggplot(tukey_results_immig, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+  theme(
+          axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Immigration", subtitle = "EES 2014", x = "", y = "", fill = "Abs. Size of Significant Differences")
+
+# Save the plot
+ggsave("heat_immig_14.pdf",plot=p, width = 10, height = 9)
+
+# issue: climate
+tukey_results_clim <- tukey_results %>%
+    filter(issue == "issue_clim")
+# Calculate absolute difference
+tukey_results_clim$abs_diff <- abs(tukey_results_clim$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_clim <- tukey_results_clim %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<-ggplot(tukey_results_clim, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Environmental Protection", subtitle = "EES 2014", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_clim_14.pdf",plot=p, width = 10, height = 9)
+```
+
+### Heatmaps no EE
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Data Preparation
+issue_names <- c(
+  issue_state_int = "State Intervention",
+  issue_redistr = "Redistribution",
+  issue_samesex = "Same-Sex Marriage",
+  issue_immig = "Immigration",
+  issue_clim = "Environmental/Climate Protection"
+)
+
+# Remove NAs from the issue variables
+ees14_no_na <- ees14 %>%
+  filter(!is.na(issue_state_int) & !is.na(issue_redistr) & !is.na(issue_samesex) & !is.na(issue_immig) & !is.na(issue_clim)) %>%
+  filter(!countryname %in% c("EE", "RO", "PL", "LV", "LT", "CZ", "BG", "HU", "HR", "SI", "SK"))
+
+
+# Function to perform Tukey's HSD test and extract the results
+get_tukey_data <- function(issue_name, data) {
+  
+  # Perform ANOVA
+  issue_anova <- aov(as.formula(paste0(issue_name, " ~ countryname")), data = data, weights = wt)
+  
+  # Perform Tukey's HSD test
+  issue_tukey <- TukeyHSD(issue_anova)
+  
+  # Extract data from the Tukey's test results
+  issue_tukey_df <- as.data.frame(issue_tukey$countryname)
+  issue_tukey_df$comparison <- rownames(issue_tukey_df)
+  
+  # Separate the comparison into two country columns
+  issue_tukey_df <- issue_tukey_df %>%
+    separate(comparison, into = c("country1", "country2"), sep = "-")
+  
+  # Add the issue name
+  issue_tukey_df$issue <- issue_name
+  
+  return(issue_tukey_df)
+}
+
+# Apply the function to all issues
+tukey_results <- purrr::map_dfr(names(issue_names), get_tukey_data, data = ees14_no_na)
+
+
+# issue: state intervention
+tukey_results_stateint <- tukey_results %>%
+    filter(issue == "issue_state_int")
+# Calculate absolute difference
+tukey_results_stateint$abs_diff <- abs(tukey_results_stateint$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_stateint <- tukey_results_stateint %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Create the heatmap
+p<-ggplot(tukey_results_stateint, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50") +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "State Intervention in the Economy", subtitle = "EES 2014", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_stateint_14_noee.pdf",plot=p, width = 10, height = 9)
+
+# issue: redistribution
+tukey_results_redist <- tukey_results %>%
+    filter(issue == "issue_redistr")
+# Calculate absolute difference
+tukey_results_redist$abs_diff <- abs(tukey_results_redist$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_redist <- tukey_results_redist %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<-ggplot(tukey_results_redist, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Economic Redistribution", subtitle = "EES 2014", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_redist_14_noee.pdf",plot=p, width = 10, height = 9)
+
+# issue: samesex
+tukey_results_samesex <- tukey_results %>%
+    filter(issue == "issue_samesex")
+# Calculate absolute difference
+tukey_results_samesex$abs_diff <- abs(tukey_results_samesex$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_samesex <- tukey_results_samesex %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 8
+
+# Create the heatmap
+p<-ggplot(tukey_results_samesex, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Same-Sex Marriage", subtitle = "EES 2014", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_samesex_14_noee.pdf",plot=p, width = 10, height = 9)
+
+
+# issue: immigration
+tukey_results_immig <- tukey_results %>%
+    filter(issue == "issue_immig")
+# Calculate absolute difference
+tukey_results_immig$abs_diff <- abs(tukey_results_immig$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_immig <- tukey_results_immig %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<-ggplot(tukey_results_immig, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Immigration", subtitle = "EES 2014", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_immig_14_noee.pdf",plot=p, width = 10, height = 9)
+
+# issue: climate
+tukey_results_clim <- tukey_results %>%
+    filter(issue == "issue_clim")
+# Calculate absolute difference
+tukey_results_clim$abs_diff <- abs(tukey_results_clim$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_clim <- tukey_results_clim %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<- ggplot(tukey_results_clim, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Environmental Protection", subtitle = "EES 2014", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_clim_14_noee.pdf",plot=p, width = 10, height = 9)
+```
+
+
+## 2019
+
+```{r, results = 'asis', fig.width=15, fig.height=28}
+# in loop
+ # Mapping issue variable names to nice names
+issue_names <- c(
+  issue_state_int = "State Intervention",
+  issue_redistr = "Redistribution",
+  issue_samesex = "Same-Sex Marriage",
+  issue_immig = "Immigration",
+  issue_clim = "Environmental/Climate Protection"
+)
+# Function to create Tukey plot
+create_tukey_plot <- function(issue_name) {
+  # Perform ANOVA
+  issue_anova <- aov(as.formula(paste0(issue_name, " ~ countryname")), data = ees19, weights = wt)
+  
+  # Perform Tukey's HSD test
+  issue_tukey <- TukeyHSD(issue_anova)
+  
+  # Extract data from the Tukey's test results
+  issue_tukey_data <- issue_tukey$countryname
+  issue_tukey_df <- as.data.frame(issue_tukey_data)
+  issue_tukey_df$comparison <- rownames(issue_tukey_df)
+  issue_tukey_df$comparison <- factor(issue_tukey_df$comparison, levels = rev(unique(issue_tukey_df$comparison)))
+  rownames(issue_tukey_df) <- NULL
+  
+  # Create a new variable indicating whether lwr and upr have different signs
+  issue_tukey_df$sign_diff <- ifelse(sign(issue_tukey_df$lwr) != sign(issue_tukey_df$upr), "grey", "black")
+  
+  # Plot
+  plot <- ggplot(issue_tukey_df, aes(x = comparison, y = diff, ymin = lwr, ymax = upr, color = sign_diff)) +
+    geom_point(size = 1) +  # Reduce size of points
+    geom_errorbar(width = 0.2, aes(color = sign_diff)) +  # Color CIs based on sign_diff
+    geom_hline(yintercept = 0, linetype = "dashed", color = "grey") +
+    theme_classic() +
+    theme(axis.title.y = element_blank(),  # Eliminate y axis title
+          axis.title.x = element_text(size = 13),
+          axis.text.y = element_text(size = 9),  # Make y axis labels smaller
+          axis.text.x = element_text(size = 12, angle = 45, vjust = 0.5, hjust = 1),
+          plot.title = element_text(size = 15, face = "bold"),
+          plot.subtitle = element_text(size = 14, face = "bold")) + 
+    labs(y = "Country Pair Mean Difference", title = issue_names[issue_name], subtitle = "EES - 2019") +  # Change x axis title and add title
+    coord_flip() +
+    scale_color_manual(values = c("grey", "black"), guide = FALSE) +
+    scale_y_continuous(breaks = seq(-3.5, 3.5, by = 0.5))
+  
+  return(plot)
+}
+
+# Use mapply to create plots for each issue
+plots <- mapply(create_tukey_plot, names(issue_names), SIMPLIFY = FALSE)
+
+# Print the plots
+print(plots)
+
+
+```
+
+
+### Heatmaps
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Data Preparation
+issue_names <- c(
+  issue_state_int = "State Intervention",
+  issue_redistr = "Redistribution",
+  issue_samesex = "Same-Sex Marriage",
+  issue_immig = "Immigration",
+  issue_clim = "Environmental/Climate Protection"
+)
+
+# Remove NAs from the issue variables
+ees19_no_na <- ees19 %>%
+  filter(!is.na(issue_state_int) & !is.na(issue_redistr) & !is.na(issue_samesex) & !is.na(issue_immig) & !is.na(issue_clim))
+
+
+# Function to perform Tukey's HSD test and extract the results
+get_tukey_data <- function(issue_name, data) {
+  # Perform ANOVA
+  issue_anova <- aov(as.formula(paste0(issue_name, " ~ countryname")), data = data, weights = wt)
+  
+  # Perform Tukey's HSD test
+  issue_tukey <- TukeyHSD(issue_anova)
+  
+  # Extract data from the Tukey's test results
+  issue_tukey_df <- as.data.frame(issue_tukey$countryname)
+  issue_tukey_df$comparison <- rownames(issue_tukey_df)
+  
+  # Separate the comparison into two country columns
+  issue_tukey_df <- issue_tukey_df %>%
+    separate(comparison, into = c("country1", "country2"), sep = "-")
+  
+  # Add the issue name
+  issue_tukey_df$issue <- issue_name
+  
+  return(issue_tukey_df)
+}
+
+# Apply the function to all issues
+tukey_results <- purrr::map_dfr(names(issue_names), get_tukey_data, data = ees19)
+
+
+# issue: state intervention
+tukey_results_stateint <- tukey_results %>%
+    filter(issue == "issue_state_int")
+# Calculate absolute difference
+tukey_results_stateint$abs_diff <- abs(tukey_results_stateint$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_stateint <- tukey_results_stateint %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+# Create the heatmap
+p<- ggplot(tukey_results_stateint, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50", limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "State Intervention in the Economy", subtitle = "EES 2019", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_stateint_19.pdf",plot=p, width = 10, height = 9)
+
+# issue: redistribution
+tukey_results_redist <- tukey_results %>%
+    filter(issue == "issue_redistr")
+# Calculate absolute difference
+tukey_results_redist$abs_diff <- abs(tukey_results_redist$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_redist <- tukey_results_redist %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+# Create the heatmap
+p<-ggplot(tukey_results_redist, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50", limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Economic Redistribution", subtitle = "EES 2019", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_redist_19.pdf",plot=p, width = 10, height = 9)
+
+# issue: samesex
+tukey_results_samesex <- tukey_results %>%
+    filter(issue == "issue_samesex")
+# Calculate absolute difference
+tukey_results_samesex$abs_diff <- abs(tukey_results_samesex$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_samesex <- tukey_results_samesex %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 8
+# Create the heatmap
+p<-ggplot(tukey_results_samesex, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50", limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Same-Sex Marriage", subtitle = "EES 2019", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_samesex_19.pdf",plot=p, width = 10, height = 9)
+
+
+# issue: immigration
+tukey_results_immig <- tukey_results %>%
+    filter(issue == "issue_immig")
+# Calculate absolute difference
+tukey_results_immig$abs_diff <- abs(tukey_results_immig$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_immig <- tukey_results_immig %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+# Create the heatmap
+p<-ggplot(tukey_results_immig, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50", limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Immigration", subtitle = "EES 2019", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_immig_19.pdf",plot=p, width = 10, height = 9)
+
+# issue: climate
+tukey_results_clim <- tukey_results %>%
+    filter(issue == "issue_clim")
+# Calculate absolute difference
+tukey_results_clim$abs_diff <- abs(tukey_results_clim$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_clim <- tukey_results_clim %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+# Create the heatmap
+p<-ggplot(tukey_results_clim, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50", limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Environmental Protection", subtitle = "EES 2019", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_clim_19.pdf",plot=p, width = 10, height = 9)
+```
+
+
+### Heatmaps no EE
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Data Preparation
+issue_names <- c(
+  issue_state_int = "State Intervention",
+  issue_redistr = "Redistribution",
+  issue_samesex = "Same-Sex Marriage",
+  issue_immig = "Immigration",
+  issue_clim = "Environmental/Climate Protection"
+)
+
+# Remove NAs from the issue variables
+ees19_no_na <- ees19 %>%
+  filter(!is.na(issue_state_int) & !is.na(issue_redistr) & !is.na(issue_samesex) & !is.na(issue_immig) & !is.na(issue_clim)) %>%
+  filter(!countryname %in% c("EE", "RO", "PL", "LV", "LT", "CZ", "BG", "HU", "HR", "SI", "SK"))
+
+# Function to perform Tukey's HSD test and extract the results
+get_tukey_data <- function(issue_name, data) {
+  # Perform ANOVA
+  issue_anova <- aov(as.formula(paste0(issue_name, " ~ countryname")), data = data, weights = wt)
+  
+  # Perform Tukey's HSD test
+  issue_tukey <- TukeyHSD(issue_anova)
+  
+  # Extract data from the Tukey's test results
+  issue_tukey_df <- as.data.frame(issue_tukey$countryname)
+  issue_tukey_df$comparison <- rownames(issue_tukey_df)
+  
+  # Separate the comparison into two country columns
+  issue_tukey_df <- issue_tukey_df %>%
+    separate(comparison, into = c("country1", "country2"), sep = "-")
+  
+  # Add the issue name
+  issue_tukey_df$issue <- issue_name
+  
+  return(issue_tukey_df)
+}
+
+# Apply the function to all issues
+tukey_results <- purrr::map_dfr(names(issue_names), get_tukey_data, data = ees19_no_na)
+
+
+# issue: state intervention
+tukey_results_stateint <- tukey_results %>%
+    filter(issue == "issue_state_int")
+# Calculate absolute difference
+tukey_results_stateint$abs_diff <- abs(tukey_results_stateint$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_stateint <- tukey_results_stateint %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+# Create the heatmap
+p<-ggplot(tukey_results_stateint, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50", limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "State Intervention in the Economy", subtitle = "EES 2019", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_stateint_19_noee.pdf",plot=p, width = 10, height = 9)
+
+# issue: redistribution
+tukey_results_redist <- tukey_results %>%
+    filter(issue == "issue_redistr")
+# Calculate absolute difference
+tukey_results_redist$abs_diff <- abs(tukey_results_redist$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_redist <- tukey_results_redist %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+# Create the heatmap
+p<-ggplot(tukey_results_redist, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50", limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Economic Redistribution", subtitle = "EES 2019", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_redist_19_noee.pdf",plot=p, width = 10, height = 9)
+
+# issue: samesex
+tukey_results_samesex <- tukey_results %>%
+    filter(issue == "issue_samesex")
+# Calculate absolute difference
+tukey_results_samesex$abs_diff <- abs(tukey_results_samesex$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_samesex <- tukey_results_samesex %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 8
+# Create the heatmap
+p<-ggplot(tukey_results_samesex, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50", limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Same-Sex Marriage", subtitle = "EES 2019", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_samesex_19_noee.pdf",plot=p, width = 10, height = 9)
+
+
+# issue: immigration
+tukey_results_immig <- tukey_results %>%
+    filter(issue == "issue_immig")
+# Calculate absolute difference
+tukey_results_immig$abs_diff <- abs(tukey_results_immig$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_immig <- tukey_results_immig %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+# Create the heatmap
+p<-ggplot(tukey_results_immig, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50", limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Immigration", subtitle = "EES 2019", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_immig_19_noee.pdf",plot=p, width = 10, height = 9)
+
+# issue: climate
+tukey_results_clim <- tukey_results %>%
+    filter(issue == "issue_clim")
+# Calculate absolute difference
+tukey_results_clim$abs_diff <- abs(tukey_results_clim$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_clim <- tukey_results_clim %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+# Create the heatmap
+p<-ggplot(tukey_results_clim, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50", limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Environmental Protection", subtitle = "EES 2019", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_clim_19_noee.pdf",plot=p, width = 10, height = 9)
+```
+
+## 2024
+
+```{r, results = 'asis', fig.width=15, fig.height=28}
+# in loop
+ # Mapping issue variable names to nice names
+issue_names <- c(
+  issue_redistr = "Redistribution",
+  issue_samesex = "Same-Sex Marriage",
+  issue_immig = "Immigration",
+  issue_clim = "Environmental/Climate Protection"
+)
+# Remove NAs from the issue variables
+ees24_no_na <- ees24 %>%
+  filter(!is.na(issue_redistr) & !is.na(issue_samesex) & !is.na(issue_immig) & !is.na(issue_clim))
+
+# Function to create Tukey plot
+create_tukey_plot <- function(issue_name) {
+  # Perform ANOVA
+  issue_anova <- aov(as.formula(paste0(issue_name, " ~ countryname")), data = ees24_no_na, weights = wt)
+  
+  # Perform Tukey's HSD test
+  issue_tukey <- TukeyHSD(issue_anova)
+  
+  # Extract data from the Tukey's test results
+  issue_tukey_data <- issue_tukey$countryname
+  issue_tukey_df <- as.data.frame(issue_tukey_data)
+  issue_tukey_df$comparison <- rownames(issue_tukey_df)
+  issue_tukey_df$comparison <- factor(issue_tukey_df$comparison, levels = rev(unique(issue_tukey_df$comparison)))
+  rownames(issue_tukey_df) <- NULL
+  
+  # Create a new variable indicating whether lwr and upr have different signs
+  issue_tukey_df$sign_diff <- ifelse(sign(issue_tukey_df$lwr) != sign(issue_tukey_df$upr), "grey", "black")
+  
+  # Plot
+  plot <- ggplot(issue_tukey_df, aes(x = comparison, y = diff, ymin = lwr, ymax = upr, color = sign_diff)) +
+    geom_point(size = 1) +  # Reduce size of points
+    geom_errorbar(width = 0.2, aes(color = sign_diff)) +  # Color CIs based on sign_diff
+    geom_hline(yintercept = 0, linetype = "dashed", color = "grey") +
+    theme_classic() +
+    theme(axis.title.y = element_blank(),  # Eliminate y axis title
+          axis.title.x = element_text(size = 13),
+          axis.text.y = element_text(size = 9),  # Make y axis labels smaller
+          axis.text.x = element_text(size = 12, angle = 45, vjust = 0.5, hjust = 1),
+          plot.title = element_text(size = 15, face = "bold"),
+          plot.subtitle = element_text(size = 14, face = "bold")) + 
+    labs(y = "Country Pair Mean Difference", title = issue_names[issue_name], subtitle = "EES - 2024") +  # Change x axis title and add title
+    coord_flip() +
+    scale_color_manual(values = c("grey", "black"), guide = FALSE) +
+    scale_y_continuous(breaks = seq(-3.5, 3.5, by = 0.5))
+  
+  return(plot)
+}
+
+# Use mapply to create plots for each issue
+plots <- mapply(create_tukey_plot, names(issue_names), SIMPLIFY = FALSE)
+
+# Print the plots
+print(plots)
+
+
+```
+
+### Heatmaps
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Data Preparation
+issue_names <- c(
+  issue_redistr = "Redistribution",
+  issue_samesex = "Same-Sex Marriage",
+  issue_immig = "Immigration",
+  issue_clim = "Environmental/Climate Protection"
+)
+
+# Remove NAs from the issue variables
+ees24_no_na <- ees24 %>%
+  filter(!is.na(issue_redistr) & !is.na(issue_samesex) & !is.na(issue_immig) & !is.na(issue_clim))
+
+
+# Function to perform Tukey's HSD test and extract the results
+get_tukey_data <- function(issue_name, data) {
+  
+  # Perform ANOVA
+  issue_anova <- aov(as.formula(paste0(issue_name, " ~ countryname")), data = data, weights = wt)
+  
+  # Perform Tukey's HSD test
+  issue_tukey <- TukeyHSD(issue_anova)
+  
+  # Extract data from the Tukey's test results
+  issue_tukey_df <- as.data.frame(issue_tukey$countryname)
+  issue_tukey_df$comparison <- rownames(issue_tukey_df)
+  
+  # Separate the comparison into two country columns
+  issue_tukey_df <- issue_tukey_df %>%
+    separate(comparison, into = c("country1", "country2"), sep = "-")
+  
+  # Add the issue name
+  issue_tukey_df$issue <- issue_name
+  
+  return(issue_tukey_df)
+}
+
+# Apply the function to all issues
+tukey_results <- purrr::map_dfr(names(issue_names), get_tukey_data, data = ees24_no_na)
+
+
+# issue: redistribution
+tukey_results_redist <- tukey_results %>%
+    filter(issue == "issue_redistr")
+# Calculate absolute difference
+tukey_results_redist$abs_diff <- abs(tukey_results_redist$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_redist <- tukey_results_redist %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<-ggplot(tukey_results_redist, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Economic Redistribution", subtitle = "EES 2024", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_redist_24.pdf",plot=p, width = 10, height = 9)
+
+# issue: samesex
+tukey_results_samesex <- tukey_results %>%
+    filter(issue == "issue_samesex")
+# Calculate absolute difference
+tukey_results_samesex$abs_diff <- abs(tukey_results_samesex$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_samesex <- tukey_results_samesex %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 8
+
+# Create the heatmap
+p<-ggplot(tukey_results_samesex, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Same-Sex Marriage", subtitle = "EES 2024", x = "", y = "", fill = "Abs. Size of Significant Differences")
+
+# Save the plot
+ggsave("heat_samesex_24.pdf",plot=p, width = 10, height = 9)
+
+# issue: immigration
+tukey_results_immig <- tukey_results %>%
+    filter(issue == "issue_immig")
+# Calculate absolute difference
+tukey_results_immig$abs_diff <- abs(tukey_results_immig$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_immig <- tukey_results_immig %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<-ggplot(tukey_results_immig, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Immigration", subtitle = "EES 2024", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_immig_24.pdf",plot=p, width = 10, height = 9)
+
+# issue: climate
+tukey_results_clim <- tukey_results %>%
+    filter(issue == "issue_clim")
+# Calculate absolute difference
+tukey_results_clim$abs_diff <- abs(tukey_results_clim$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_clim <- tukey_results_clim %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<-ggplot(tukey_results_clim, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Environmental Protection", subtitle = "EES 2024", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_clim_24.pdf",plot=p, width = 10, height = 9)
+
+```
+
+### Heatmaps no EE
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Data Preparation
+issue_names <- c(
+  issue_redistr = "Redistribution",
+  issue_samesex = "Same-Sex Marriage",
+  issue_immig = "Immigration",
+  issue_clim = "Environmental/Climate Protection"
+)
+
+# Remove NAs from the issue variables
+ees24_no_na <- ees24 %>%
+  filter(!is.na(issue_redistr) & !is.na(issue_samesex) & !is.na(issue_immig) & !is.na(issue_clim)) %>%
+  filter(!countryname %in% c("EE", "RO", "PL", "LV", "LT", "CZ", "BG", "HU", "HR", "SI", "SK"))
+
+
+# Function to perform Tukey's HSD test and extract the results
+get_tukey_data <- function(issue_name, data) {
+  
+  # Perform ANOVA
+  issue_anova <- aov(as.formula(paste0(issue_name, " ~ countryname")), data = data, weights = wt)
+  
+  # Perform Tukey's HSD test
+  issue_tukey <- TukeyHSD(issue_anova)
+  
+  # Extract data from the Tukey's test results
+  issue_tukey_df <- as.data.frame(issue_tukey$countryname)
+  issue_tukey_df$comparison <- rownames(issue_tukey_df)
+  
+  # Separate the comparison into two country columns
+  issue_tukey_df <- issue_tukey_df %>%
+    separate(comparison, into = c("country1", "country2"), sep = "-")
+  
+  # Add the issue name
+  issue_tukey_df$issue <- issue_name
+  
+  return(issue_tukey_df)
+}
+
+# Apply the function to all issues
+tukey_results <- purrr::map_dfr(names(issue_names), get_tukey_data, data = ees24_no_na)
+
+
+
+# issue: redistribution
+tukey_results_redist <- tukey_results %>%
+    filter(issue == "issue_redistr")
+# Calculate absolute difference
+tukey_results_redist$abs_diff <- abs(tukey_results_redist$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_redist <- tukey_results_redist %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<-ggplot(tukey_results_redist, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Economic Redistribution", subtitle = "EES 2024", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_redist_24_noee.pdf",plot=p, width = 10, height = 9)
+
+# issue: samesex
+tukey_results_samesex <- tukey_results %>%
+    filter(issue == "issue_samesex")
+# Calculate absolute difference
+tukey_results_samesex$abs_diff <- abs(tukey_results_samesex$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_samesex <- tukey_results_samesex %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 8
+
+# Create the heatmap
+p<-ggplot(tukey_results_samesex, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Same-Sex Marriage", subtitle = "EES 2024", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_samesex_24_noee.pdf",plot=p, width = 10, height = 9)
+
+
+# issue: immigration
+tukey_results_immig <- tukey_results %>%
+    filter(issue == "issue_immig")
+# Calculate absolute difference
+tukey_results_immig$abs_diff <- abs(tukey_results_immig$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_immig <- tukey_results_immig %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<-ggplot(tukey_results_immig, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Immigration", subtitle = "EES 2024", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_immig_24_noee.pdf",plot=p, width = 10, height = 9)
+
+# issue: immigration
+tukey_results_clim <- tukey_results %>%
+    filter(issue == "issue_clim")
+# Calculate absolute difference
+tukey_results_clim$abs_diff <- abs(tukey_results_clim$diff)
+# Set abs_diff to 0 where p adj > 0.05
+tukey_results_clim <- tukey_results_clim %>%
+    mutate(abs_diff = case_when(`p adj` > 0.05 ~ 0,
+                                TRUE ~ abs_diff))
+# Define the fixed range for the color scale
+fixed_min <- 0
+fixed_max <- 5
+
+# Create the heatmap
+p<-ggplot(tukey_results_clim, aes(x = country1, y = country2, fill = abs_diff)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "red4", na.value = "grey50",  limits = c(fixed_min, fixed_max)) +
+  theme_minimal() +
+    theme(
+    axis.text.x = element_text(angle = 30, face = "plain", size = rel(1.7)),
+          axis.text.y = element_text(face = "plain", size = rel(1.7)),
+          axis.title.x = element_text(face = "plain", size = rel(1.2)),
+          axis.title.y = element_text(face = "plain", size = rel(1.6)),
+          plot.title = element_text(size = rel(2.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1.8), face = "bold"),
+          panel.grid = element_blank(),
+        legend.title= element_text(size = 8)) +  # Eliminate grid in background
+  labs(title = "Environmental Protection", subtitle = "EES 2024", x = "", y = "", fill = "Abs. Size of Significant Differences")
+# Save the plot
+ggsave("heat_clim_24_noee.pdf",plot=p, width = 10, height = 9)
+
+```
+
+
+
+
+# ANOVA & ICC - Within vs. Between
+## 2014
+
+### State Intervention
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_state_int) ~ countryname, data = ees14_no_na)
+summary(anova_result)
+
+#ICC
+model <- lmer(as.numeric(issue_state_int) ~ 1 + (1 | countryname), data = ees14_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T) 
+print(icc_result)
+
+# Reshape the data
+icc_stateint_14 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2014) %>%
+  mutate(issue = "state_int") %>%
+  dplyr::slice(1)
+
+
+```
+
+
+### Redistribution
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_redistr) ~ countryname, data = ees14_no_na)
+summary(anova_result)
+
+#ICC
+model <- lmer(as.numeric(issue_redistr) ~ 1 + (1 | countryname), data = ees14_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+# Reshape the data
+icc_redistr_14 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2014)%>%
+  mutate(issue = "redist") %>%
+  dplyr::slice(1)
+```
+
+
+### Climate
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_clim) ~ countryname, data = ees14_no_na)
+summary(anova_result)
+
+#ICC
+model <- lmer(as.numeric(issue_clim) ~ 1 + (1 | countryname), data = ees14_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+# Reshape the data
+icc_clim_14 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2014)%>%
+  mutate(issue = "clim") %>%
+  dplyr::slice(1)
+```
+
+
+### Immigration
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_immig) ~ countryname, data = ees14_no_na)
+summary(anova_result)
+#ICC
+model <- lmer(as.numeric(issue_immig) ~ 1 + (1 | countryname), data = ees14_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+# Reshape the data
+icc_immig_14 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2014)%>%
+  mutate(issue = "immig") %>%
+  dplyr::slice(1)
+```
+
+### Same-Sex Marriage
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_samesex) ~ countryname, data = ees14_no_na)
+summary(anova_result)
+#ICC
+model <- lmer(as.numeric(issue_samesex) ~ 1 + (1 | countryname), data = ees14_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+# Reshape the data
+icc_samesex_14 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2014)%>%
+  mutate(issue = "same_sex") %>%
+  dplyr::slice(1)
+
+```
+
+```{r}
+icc14 <- bind_rows(icc_stateint_14, icc_redistr_14, icc_clim_14, icc_immig_14, icc_samesex_14)
+```
+
+
+## 2019
+
+### State Intervention
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_state_int) ~ countryname, data = ees19_no_na)
+summary(anova_result)
+
+#ICC
+model <- lmer(as.numeric(issue_state_int) ~ 1 + (1 | countryname), data = ees19_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+# Reshape the data
+icc_stateint_19 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2019) %>%
+  mutate(issue = "state_int") %>%
+  dplyr::slice(1)
+```
+
+
+### Redistribution
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_redistr) ~ countryname, data = ees19_no_na)
+summary(anova_result)
+
+#ICC
+model <- lmer(as.numeric(issue_redistr) ~ 1 + (1 | countryname), data = ees19_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+# Reshape the data
+icc_redistr_19 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2019)%>%
+  mutate(issue = "redist") %>%
+  dplyr::slice(1)
+```
+
+
+### Climate
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_clim) ~ countryname, data = ees19_no_na)
+summary(anova_result)
+
+#ICC
+model <- lmer(as.numeric(issue_clim) ~ 1 + (1 | countryname), data = ees19_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+
+# Reshape the data
+icc_clim_19 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2019)%>%
+  mutate(issue = "clim") %>%
+  dplyr::slice(1)
+```
+
+
+### Immigration
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_immig) ~ countryname, data = ees19_no_na)
+summary(anova_result)
+#ICC
+model <- lmer(as.numeric(issue_immig) ~ 1 + (1 | countryname), data = ees19_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+# Reshape the data
+icc_immig_19 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2019)%>%
+  mutate(issue = "immig") %>%
+  dplyr::slice(1)
+
+```
+
+### Same-Sex Marriage
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_samesex) ~ countryname, data = ees19_no_na)
+summary(anova_result)
+#ICC
+model <- lmer(as.numeric(issue_samesex) ~ 1 + (1 | countryname), data = ees19_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+# Reshape the data
+icc_samesex_19 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2019)%>%
+  mutate(issue = "same_sex") %>%
+  dplyr::slice(1)
+
+```
+
+```{r}
+icc19 <- bind_rows(icc_stateint_19, icc_redistr_19, icc_clim_19, icc_immig_19, icc_samesex_19)
+
+```
+
+
+## 2024
+
+### Redistribution
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_redistr) ~ countryname, data = ees24_no_na)
+summary(anova_result)
+
+#ICC
+model <- lmer(as.numeric(issue_redistr) ~ 1 + (1 | countryname), data = ees24_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+icc_redistr_24 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2024)%>%
+  mutate(issue = "redist") %>%
+  dplyr::slice(1)
+```
+
+
+### Climate
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_clim) ~ countryname, data = ees24_no_na)
+summary(anova_result)
+
+#ICC
+model <- lmer(as.numeric(issue_clim) ~ 1 + (1 | countryname), data = ees24_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+icc_clim_24 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2024)%>%
+  mutate(issue = "clim") %>%
+  dplyr::slice(1)
+```
+
+
+### Immigration
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_immig) ~ countryname, data = ees24_no_na)
+summary(anova_result)
+#ICC
+model <- lmer(as.numeric(issue_immig) ~ 1 + (1 | countryname), data = ees24_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+icc_immig_24 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2024)%>%
+  mutate(issue = "immig") %>%
+  dplyr::slice(1)
+```
+
+### Same-Sex Marriage
+```{r}
+# ANOVA
+anova_result <- aov(as.numeric(issue_samesex) ~ countryname, data = ees24_no_na)
+summary(anova_result)
+#ICC
+model <- lmer(as.numeric(issue_samesex) ~ 1 + (1 | countryname), data = ees24_no_na, weights=wt)
+summary(model)
+icc_result <- performance::icc(model, ci=T)
+print(icc_result)
+
+icc_samesex_24 <- as.data.frame(t(icc_result)) %>%
+  dplyr::rename("ICC"= "1") %>%
+  mutate(year = 2024)%>%
+  mutate(issue = "same_sex") %>%
+  dplyr::slice(1)
+```
+
+## 2014-2024
+
+```{r}
+icc24 <- bind_rows(icc_redistr_24, icc_clim_24, icc_immig_24, icc_samesex_24)
+
+icc_all <- bind_rows(icc14, icc19, icc24)
+
+# Load necessary libraries
+library(ggplot2)
+
+# Reorder the 'year' column so that 2014 comes first for plotting
+icc_all$year <- factor(icc_all$year, levels = c(2014, 2019, 2024))
+
+# Force 2014 to appear at the top in the plot
+icc_all$year <- factor(icc_all$year, levels = rev(c(2014, 2019, 2024)))
+
+# Create the coefficient plot
+p<-ggplot(icc_all, aes(x = ICC, y = issue, shape = factor(year), color = factor(year))) +
+  geom_point(size = 3, position = position_dodge(width = 0.6)) +  # Stagger dots by year
+  geom_errorbar(aes(xmin = CI_low, xmax = CI_high), width = 0.1, position = position_dodge(width = 0.6)) +  # Whiskers with same dodge
+  facet_wrap(~ issue, scales = "free_y", ncol = 1) +  # One column of facets
+  scale_shape_manual(values = c(16, 17, 18)) +  # Different shapes for years
+  scale_color_manual(values = c("2014" = "blue", "2019" = "red", "2024" = "green")) +  # Custom colors for years
+  labs(title = "Intraclass Correlation Coefficients (ICC) ",
+       subtitle = "By Issue and by EES year",
+       x = "ICC Value",
+       y = "Issue",
+       shape = "Year",
+       color = "Year") +
+  theme_minimal() +
+  theme(legend.position = "top",  # Position the legend at the top
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        strip.text = element_blank(),  # Remove facet titles
+        strip.background = element_blank())  # Optionally remove the background of the facet strip
+p
+# Save the plot with the desired filename
+  file_name <- paste0("ICC_coefplot.pdf")
+  ggsave(file_name, plot = p, width = 20, height=15)
+```
+
+
+# Means: Dyadic Regression
+
+```{r}
+# MEAN DIFFERENCES
+load("dyaddata.RData")
+# 
+# remove duplicates by dyad-year (e.g. ATBE dyad appears six times instead of three, as BE can be country 1 too ... but always recorded as ATBE luckily in original dataframe. Remove dyad-year duplicates) 
+dyaddata <- dyaddata %>%
+  distinct(year, dyad, .keep_all = TRUE)
+
+# --- Model 1: model_state_int ---
+model_state_int <- lm(dist_avg_issue_state_int ~ year + factor(dyad), data = dyaddata)
+out1 <- dyadRobust(fit = model_state_int,
+           dat = dyaddata,
+           dyadid = "dyad",
+           egoid = "country1",
+           alterid = "country2")
+out1b <- out1$bhat["year"]
+out1se <- out1$sehat["year"]
+out1t <- out1b / out1se
+out1p <- 2 * (1 - pnorm(abs(out1t)))  # Two-tailed p-value
+
+# --- Model 2: model_redistr ---
+model_redistr <- lm(dist_avg_issue_redistr ~ year + factor(dyad), data = dyaddata)
+out2 <- dyadRobust(fit = model_redistr,
+           dat = dyaddata,
+           dyadid = "dyad",
+           egoid = "country1",
+           alterid = "country2")
+out2b <- out2$bhat["year"]
+out2se <- out2$sehat["year"]
+out2t <- out2b / out2se
+out2p <- 2 * (1 - pnorm(abs(out2t)))  # Two-tailed p-value
+
+# --- Model 3: model_clim ---
+model_clim <- lm(dist_avg_issue_clim ~ year + factor(dyad), data = dyaddata)
+out3 <- dyadRobust(fit = model_clim,
+           dat = dyaddata,
+           dyadid = "dyad",
+           egoid = "country1",
+           alterid = "country2")
+out3b <- out3$bhat["year"]
+out3se <- out3$sehat["year"]
+out3t <- out3b / out3se
+out3p <- 2 * (1 - pnorm(abs(out3t)))  # Two-tailed p-value
+
+# --- Model 4: model_samesex ---
+model_samesex <- lm(dist_avg_issue_samesex ~ year + factor(dyad), data = dyaddata)
+out4 <- dyadRobust(fit = model_samesex,
+           dat = dyaddata,
+           dyadid = "dyad",
+           egoid = "country1",
+           alterid = "country2")
+out4b <- out4$bhat["year"]
+out4se <- out4$sehat["year"]
+out4t <- out4b / out4se
+out4p <- 2 * (1 - pnorm(abs(out4t)))  # Two-tailed p-value
+
+# --- Model 5: model_immig ---
+model_immig <- lm(dist_avg_issue_immig ~ year + factor(dyad), data = dyaddata)
+out5 <- dyadRobust(fit = model_immig,
+           dat = dyaddata,
+           dyadid = "dyad",
+           egoid = "country1",
+           alterid = "country2")
+out5b <- out5$bhat["year"]
+out5se <- out5$sehat["year"]
+out5t <- out5b / out5se
+out5p <- 2 * (1 - pnorm(abs(out5t)))  # Two-tailed p-value
+
+
+```
+## Tables
+```{r}
+stargazer(model_state_int, model_redistr, model_clim, model_immig, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="meandiffmods_wdyads.tex")
+
+stargazer(model_state_int, model_redistr, model_clim, model_immig, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="meandiffmods.tex", 
+          omit = "factor\\(dyad\\)")
+
+
+stargazer(model_samesex, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="meandiffmodsamesex_wdyads.tex")
+
+stargazer(model_samesex, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="meandiffmodsamesex.tex", 
+          omit = "factor\\(dyad\\)")
+
+
+stargazer(model_state_int, model_redistr, model_clim, model_immig, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="meandiffmods.htm", 
+           omit = "factor\\(dyad\\)")
+stargazer(model_samesex, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="meandiffmodsamesex.htm", 
+          omit = "factor\\(dyad\\)")
+
+```
+
+## Interaction Models
+### Eastern Europe
+```{r}
+nwe_cluster <- c("DK", "FI", "SE", "AT", "BE", "FR", "DE", "IE", "LU", "NL", "UK")
+ee_cluster <- c("BG", "HR", "CZ", "EE", "HU", "LV", "LT", "PL", "RO", "SK", "SI")
+se_cluster <- c("CY", "EL", "IT", "MT", "PT", "ES")
+eu15_cluster <- c("AT", "BE", "DK", "FI", "FR", "DE", "EL", "IE", "IT", "LU", "NL", "PT", "ES", "SE", "UK")
+```
+
+```{r}
+
+# at least one country in dyad is EE, but they are not both from EE: adaptation story + the 'new has more space to move'.
+
+dyaddata <- dyaddata %>%
+  mutate(ee_dummy = case_when(
+    country1 %in% ee_cluster & country2 %in% ee_cluster ~ 0,  # both countries are in EE
+    country1 %in% ee_cluster | country2 %in% ee_cluster ~ 1,  # at least one country is in EE
+    TRUE ~ 0  # if neither country is in EE
+  ))
+
+# --- Model 1: model_state_int ---
+model_state_int_ee <- lm(dist_avg_issue_state_int ~ year*ee_dummy + factor(dyad), data = dyaddata)
+
+# --- Model 2: model_redistr ---
+model_redistr_ee <- lm(dist_avg_issue_redistr ~ year*ee_dummy + factor(dyad), data = dyaddata)
+
+# --- Model 3: model_clim ---
+model_clim_ee <- lm(dist_avg_issue_clim ~ year * ee_dummy + factor(dyad), data = dyaddata)
+
+# --- Model 4: model_samesex ---
+model_samesex_ee <- lm(dist_avg_issue_samesex ~ year * ee_dummy + factor(dyad), data = dyaddata)
+
+# --- Model 5: model_immig ---
+model_immig_ee <- lm(dist_avg_issue_immig ~ year * ee_dummy + factor(dyad), data = dyaddata)
+
+
+stargazer(model_state_int_ee, model_redistr_ee, model_clim_ee, model_immig_ee, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="meandiffmods_ee.tex", 
+          omit = "factor\\(dyad\\)")
+stargazer(model_samesex_ee, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="meandiffmodsamesex_ee.tex", 
+          omit = "factor\\(dyad\\)")
+
+stargazer(model_state_int_ee, model_redistr_ee, model_clim_ee, model_immig_ee, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="meandiffmods_ee.htm", 
+          omit = "factor\\(dyad\\)")
+stargazer(model_samesex_ee, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="meandiffmodsamesex_ee.htm", 
+          omit = "factor\\(dyad\\)")
+
+```
+
+### Older Member States
+
+```{r}
+# BOTH countries in dyad are from old vs. all others (mixed vs only new countries): long-term socialisation story
+
+# Create dummy for EU15 cluster, where both country1 and country2 must be in eu15_cluster
+dyaddata <- dyaddata %>%
+  mutate(eu15_dummy = if_else(country1 %in% eu15_cluster & country2 %in% eu15_cluster, 1, 0))
+
+# --- Model 1: model_state_int ---
+model_state_int_eu15 <- lm(dist_avg_issue_state_int ~ year * eu15_dummy + factor(dyad), data = dyaddata)
+
+# --- Model 2: model_redistr ---
+model_redistr_eu15 <- lm(dist_avg_issue_redistr ~ year * eu15_dummy + factor(dyad), data = dyaddata)
+
+# --- Model 3: model_clim ---
+model_clim_eu15 <- lm(dist_avg_issue_clim ~ year * eu15_dummy + factor(dyad), data = dyaddata)
+
+# --- Model 4: model_samesex ---
+model_samesex_eu15 <- lm(dist_avg_issue_samesex ~ year * eu15_dummy + factor(dyad), data = dyaddata)
+
+# --- Model 5: model_immig ---
+model_immig_eu15 <- lm(dist_avg_issue_immig ~ year * eu15_dummy + factor(dyad), data = dyaddata)
+
+
+# LaTeX output
+stargazer(model_state_int_eu15, model_redistr_eu15, model_clim_eu15, 
+          ord.intercepts = TRUE, t.auto = FALSE, p.auto = FALSE, report = "vc*s",
+          out = "meandiffmods1_eu15.tex", omit = "factor\\(dyad\\)")
+
+stargazer(model_immig_eu15, model_samesex_eu15,
+          ord.intercepts = TRUE, t.auto = FALSE, p.auto = FALSE, report = "vc*s",
+          out = "meandiffmods2_eu15.tex", omit = "factor\\(dyad\\)")
+
+# HTML output
+stargazer(model_state_int_eu15, model_redistr_eu15, model_clim_eu15, 
+          ord.intercepts = TRUE, t.auto = FALSE, p.auto = FALSE, report = "vc*s",
+          out = "meandiffmods1_eu15.htm", omit = "factor\\(dyad\\)")
+
+stargazer(model_immig_eu15, model_samesex_eu15,
+          ord.intercepts = TRUE, t.auto = FALSE, p.auto = FALSE, report = "vc*s",
+          out = "meandiffmods2_eu15.htm", omit = "factor\\(dyad\\)")
+```
+
+
+## Coefplot
+
+```{r}
+# extract coefs from all models, similar to 'out' objects
+summary_state_int <- summary(model_state_int)
+bhat_state_int <- coef(summary_state_int)["year", "Estimate"]
+sehat_state_int <- coef(summary_state_int)["year", "Std. Error"]
+t_state_int <- bhat_state_int / sehat_state_int
+p_state_int <- 2 * (1 - pnorm(abs(t_state_int))) 
+
+# For model_redistr
+summary_redistr <- summary(model_redistr)
+bhat_redistr <- coef(summary_redistr)["year", "Estimate"]
+sehat_redistr <- coef(summary_redistr)["year", "Std. Error"]
+t_redistr <- bhat_redistr / sehat_redistr
+p_redistr <- 2 * (1 - pnorm(abs(t_redistr)))
+
+# For model_clim
+summary_clim <- summary(model_clim)
+bhat_clim <- coef(summary_clim)["year", "Estimate"]
+sehat_clim <- coef(summary_clim)["year", "Std. Error"]
+t_clim <- bhat_clim / sehat_clim
+p_clim <- 2 * (1 - pnorm(abs(t_clim)))
+
+# For model_immig
+summary_immig <- summary(model_immig)
+bhat_immig <- coef(summary_immig)["year", "Estimate"]
+sehat_immig <- coef(summary_immig)["year", "Std. Error"]
+t_immig <- bhat_immig / sehat_immig
+p_immig <- 2 * (1 - pnorm(abs(t_immig)))
+
+# For model_samesex
+summary_samesex <- summary(model_samesex)
+bhat_samesex <- coef(summary_samesex)["year", "Estimate"]
+sehat_samesex <- coef(summary_samesex)["year", "Std. Error"]
+t_samesex <- bhat_samesex / sehat_samesex
+p_samesex <- 2 * (1 - pnorm(abs(t_samesex)))
+
+
+coefs <- data.frame(
+  model = c("State intervention","State intervention",
+            "Redistribution","Redistribution",  
+            "Climate", "Climate",
+            "Immigration", "Immigration",
+            "Same-Sex Marriage", "Same-Sex Marriage"),
+  corr = c("Standard", "Dyad cluster-robust", "Standard", "Dyad cluster-robust",
+           "Standard", "Dyad cluster-robust","Standard", "Dyad cluster-robust",
+           "Standard", "Dyad cluster-robust"),
+  bhat = c(bhat_state_int, out1b, 
+           bhat_redistr, out2b,
+           bhat_clim, out3b,
+           bhat_immig, out5b,
+           bhat_samesex, out4b),
+  sehat = c(sehat_state_int, out1se,
+            sehat_redistr, out2se,
+            sehat_clim, out3se,
+            sehat_immig, out5se,
+            sehat_samesex, out4se),
+  t_stat = c(out1t, out2t, out3t, out5t, out4t),  # Using the precomputed t-statistics
+  p_value = c(out1p, out2p, out3p, out5p, out4p)   # Using the precomputed p-values
+)
+
+coefs <- coefs %>%
+  mutate(
+    ci_lower = bhat - 1.96 * sehat,
+    ci_upper = bhat + 1.96 * sehat
+  )
+
+
+```
+
+```{r}
+
+p<-ggplot(coefs, aes(x = bhat, y = model, color = corr, group = corr)) +
+  geom_point(size = rel(2), position = position_dodge(width = 0.5)) +  # Use position_dodge to avoid overlap of points
+  geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper), height = 0.2, position = position_dodge(width = 0.5)) +  # Same dodge for error bars
+  geom_vline(xintercept = 0, color = 'black', size = 1) +
+  labs(x = '', y = '', title = 'Year Trend Coefficients', subtitle='Dyadic Fixed Effects Regression, 2014-2024') +
+  theme_minimal() +
+    theme(axis.text.y = element_text(size = rel(1.8)),
+          axis.text.x = element_text(size = rel(1.8)),
+          axis.title.y =element_text(size = rel(1.8)),
+          plot.title = element_text(size = rel(2.2)),
+          plot.subtitle = element_text(size = rel(1.8)),
+    legend.title = element_blank(),
+    legend.text = element_text(size = rel(1.5)), 
+    legend.position = "right"  # Place the legend on the right
+  ) +
+  scale_color_manual(values = c('Standard' = 'black', 'Dyad cluster-robust' = 'grey'))  # Change blue to black and red to grey
+p
+
+# Save the plot with the desired filename
+  file_name <- paste0("dyad_coefplot_.pdf")
+  ggsave(file_name, plot = p, width = 12, height=8)
+```
+
+
+# EMD plots
+
+## Manuscript
+
+```{r}
+load("emd_results14.RData")
+load("emd_results19.RData")
+load("emd_results24.RData")
+
+#append files
+emd_results<-rowbind(emd_results14, emd_results19, emd_results24) 
+
+# Create dyad column with consistent naming
+emd_results$dyad <- apply(emd_results[, c("country1", "country2")], 1, function(x) {
+  paste(sort(x), collapse = "")
+})
+
+# remove duplicates by dyad-issue-year (due to country1, country2 flips)
+emd_results <- emd_results %>%
+  distinct(issue, yr, dyad, .keep_all = TRUE)
+
+# reshape wide
+emd_results <- emd_results %>%
+  mutate(issue = paste0("emd_", issue)) %>%  # Prefix issue with "emd_"
+  pivot_wider(
+    names_from = issue,
+    values_from = emd
+  )
+
+issue_names <- c(
+    emd_issue_state_int = "State Intervention",
+    emd_issue_redistr = "Redistribution",
+    emd_issue_samesex = "Same-Sex Marriage",
+    emd_issue_immig = "Immigration",
+    emd_issue_clim = "Climate/Environment"
+  )
+
+```
+
+
+## Dyadic Regression
+
+```{r}
+# --- Model 1: model_state_int ---
+model_state_int_emd <- lm(emd_issue_state_int ~ yr + factor(dyad), data = emd_results)
+out1emd <- dyadRobust(fit = model_state_int_emd,
+           dat = emd_results,
+           dyadid = "dyad",
+           egoid = "country1",
+           alterid = "country2")
+out1bemd <- out1emd$bhat["yr"]
+out1seemd <- out1emd$sehat["yr"]
+out1temd <- out1bemd / out1seemd
+out1pemd <- 2 * (1 - pnorm(abs(out1temd)))  # Two-tailed p-value
+
+# --- Model 2: model_redistr ---
+model_redistr_emd <- lm(emd_issue_redistr ~ yr + factor(dyad), data = emd_results)
+out2emd <- dyadRobust(fit = model_redistr_emd,
+           dat = emd_results,
+           dyadid = "dyad",
+           egoid = "country1",
+           alterid = "country2")
+out2bemd <- out2emd$bhat["yr"]
+out2seemd <- out2emd$sehat["yr"]
+out2temd <- out2bemd / out2seemd
+out2pemd <- 2 * (1 - pnorm(abs(out2temd)))  # Two-tailed p-value
+
+# --- Model 3: model_clim ---
+model_clim_emd <- lm(emd_issue_clim ~ yr + factor(dyad), data = emd_results)
+out3emd <- dyadRobust(fit = model_clim_emd,
+           dat = emd_results,
+           dyadid = "dyad",
+           egoid = "country1",
+           alterid = "country2")
+out3bemd <- out3emd$bhat["yr"]
+out3seemd <- out3emd$sehat["yr"]
+out3temd <- out3bemd / out3seemd
+out3pemd <- 2 * (1 - pnorm(abs(out3temd)))  # Two-tailed p-value
+
+# --- Model 4: model_samesex ---
+model_samesex_emd <- lm(emd_issue_samesex ~ yr + factor(dyad), data = emd_results)
+out4emd <- dyadRobust(fit = model_samesex_emd,
+           dat = emd_results,
+           dyadid = "dyad",
+           egoid = "country1",
+           alterid = "country2")
+out4bemd <- out4emd$bhat["yr"]
+out4seemd <- out4emd$sehat["yr"]
+out4temd <- out4bemd / out4seemd
+out4pemd <- 2 * (1 - pnorm(abs(out4temd)))  # Two-tailed p-value
+
+# --- Model 5: model_immig ---
+model_immig_emd <- lm(emd_issue_immig ~ yr + factor(dyad), data = emd_results)
+out5emd <- dyadRobust(fit = model_immig_emd,
+           dat = emd_results,
+           dyadid = "dyad",
+           egoid = "country1",
+           alterid = "country2")
+out5bemd <- out5emd$bhat["yr"]
+out5seemd <- out5emd$sehat["yr"]
+out5temd <- out5bemd / out5seemd
+out5pemd <- 2 * (1 - pnorm(abs(out5temd)))  # Two-tailed p-value
+
+
+```
+## Tables
+```{r}
+stargazer(model_state_int_emd, model_redistr_emd, model_clim_emd, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="EMDmods_wdyads1.tex")
+
+stargazer(model_immig_emd, model_samesex_emd, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="EMDmods_wdyads2.tex")
+
+stargazer(model_state_int_emd, model_redistr_emd, model_clim_emd, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="EMDmods1.tex", 
+          omit = "factor\\(dyad\\)")
+
+stargazer(model_immig_emd, model_samesex_emd, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="EMDmods2.tex", 
+          omit = "factor\\(dyad\\)")
+
+stargazer(model_state_int_emd, model_redistr_emd, model_clim_emd, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="EMDmods1.htm", 
+          omit = "factor\\(dyad\\)")
+
+stargazer(model_immig_emd, model_samesex_emd, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="EMDmods2.htm", 
+          omit = "factor\\(dyad\\)")
+
+
+```
+
+## Interaction Models
+### Eastern Europe
+```{r}
+nwe_cluster <- c("DK", "FI", "SE", "AT", "BE", "FR", "DE", "IE", "LU", "NL", "UK")
+ee_cluster <- c("BG", "HR", "CZ", "EE", "HU", "LV", "LT", "PL", "RO", "SK", "SI")
+se_cluster <- c("CY", "EL", "IT", "MT", "PT", "ES")
+eu15_cluster <- c("AT", "BE", "DK", "FI", "FR", "DE", "EL", "IE", "IT", "LU", "NL", "PT", "ES", "SE", "UK")
+```
+
+```{r}
+
+# at least one country in dyad is EE, but they are not both from EE: adaptation story + the 'new has more space to move'.
+
+emd_results <- emd_results %>%
+  mutate(ee_dummy = case_when(
+    country1 %in% ee_cluster & country2 %in% ee_cluster ~ 0,  # both countries are in EE
+    country1 %in% ee_cluster | country2 %in% ee_cluster ~ 1,  # at least one country is in EE
+    TRUE ~ 0  # if neither country is in EE
+  ))
+
+# --- Model 1: model_state_int ---
+model_state_int_emd_ee <- lm(emd_issue_state_int ~ yr*ee_dummy + factor(dyad), data = emd_results)
+
+# --- Model 2: model_redistr ---
+model_redistr_emd_ee <- lm(emd_issue_redistr ~ yr*ee_dummy + factor(dyad), data = emd_results)
+
+# --- Model 3: model_clim ---
+model_clim_emd_ee <- lm(emd_issue_clim ~ yr*ee_dummy + factor(dyad), data = emd_results)
+
+# --- Model 4: model_samesex ---
+model_samesex_emd_ee <- lm(emd_issue_samesex ~ yr*ee_dummy + factor(dyad), data = emd_results)
+
+# --- Model 5: model_immig ---
+model_immig_emd_ee <- lm(emd_issue_immig ~ yr*ee_dummy + factor(dyad), data = emd_results)
+
+
+stargazer(model_state_int_emd_ee, model_redistr_emd_ee, model_clim_emd_ee,  ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="EMDmods1_ee.tex", 
+          omit = "factor\\(dyad\\)")
+stargazer(model_immig_emd_ee,model_samesex_emd_ee, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="EMDmods2_ee.tex", 
+          omit = "factor\\(dyad\\)")
+
+
+
+
+```
+
+## Coefplot
+
+```{r}
+# extract coefs from all models, similar to 'out' objects
+summary_state_int <- summary(model_state_int_emd)
+bhat_state_int <- coef(summary_state_int)["yr", "Estimate"]
+sehat_state_int <- coef(summary_state_int)["yr", "Std. Error"]
+t_state_int <- bhat_state_int / sehat_state_int
+p_state_int <- 2 * (1 - pnorm(abs(t_state_int))) 
+
+# For model_redistr
+summary_redistr <- summary(model_redistr_emd)
+bhat_redistr <- coef(summary_redistr)["yr", "Estimate"]
+sehat_redistr <- coef(summary_redistr)["yr", "Std. Error"]
+t_redistr <- bhat_redistr / sehat_redistr
+p_redistr <- 2 * (1 - pnorm(abs(t_redistr)))
+
+# For model_clim
+summary_clim <- summary(model_clim_emd)
+bhat_clim <- coef(summary_clim)["yr", "Estimate"]
+sehat_clim <- coef(summary_clim)["yr", "Std. Error"]
+t_clim <- bhat_clim / sehat_clim
+p_clim <- 2 * (1 - pnorm(abs(t_clim)))
+
+# For model_immig
+summary_immig <- summary(model_immig_emd)
+bhat_immig <- coef(summary_immig)["yr", "Estimate"]
+sehat_immig <- coef(summary_immig)["yr", "Std. Error"]
+t_immig <- bhat_immig / sehat_immig
+p_immig <- 2 * (1 - pnorm(abs(t_immig)))
+
+# For model_samesex
+summary_samesex <- summary(model_samesex_emd)
+bhat_samesex <- coef(summary_samesex)["yr", "Estimate"]
+sehat_samesex <- coef(summary_samesex)["yr", "Std. Error"]
+t_samesex <- bhat_samesex / sehat_samesex
+p_samesex <- 2 * (1 - pnorm(abs(t_samesex)))
+
+
+coefs_emd <- data.frame(
+  model = c("State intervention","State intervention",
+            "Redistribution","Redistribution",  
+            "Climate", "Climate",
+            "Immigration", "Immigration",
+            "Same-Sex Marriage", "Same-Sex Marriage"),
+  corr = c("Standard", "Dyad cluster-robust", "Standard", "Dyad cluster-robust",
+           "Standard", "Dyad cluster-robust","Standard", "Dyad cluster-robust",
+           "Standard", "Dyad cluster-robust"),
+  bhat = c(bhat_state_int, out1bemd, 
+           bhat_redistr, out2bemd,
+           bhat_clim, out3bemd,
+           bhat_immig, out5bemd,
+           bhat_samesex, out4bemd),
+  sehat = c(sehat_state_int, out1seemd,
+            sehat_redistr, out2seemd,
+            sehat_clim, out3seemd,
+            sehat_immig, out5seemd,
+            sehat_samesex, out4seemd) # Using the precomputed p-values
+)
+
+coefs_emd <- coefs_emd %>%
+  mutate(
+    ci_lower = bhat - 1.96 * sehat,
+    ci_upper = bhat + 1.96 * sehat
+  )
+
+
+```
+
+```{r}
+
+p<-ggplot(coefs_emd, aes(x = bhat, y = model, color = corr, group = corr)) +
+  geom_point(size = rel(2), position = position_dodge(width = 0.5), shape=17) +  # Use position_dodge to avoid overlap of points
+  geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper), height = 0.2, position = position_dodge(width = 0.5)) +  # Same dodge for error bars
+  geom_vline(xintercept = 0, color = 'black', size = 1) +
+  labs(x = '', y = '', title = 'EMD Year Trend Coefficients', subtitle='Dyadic Fixed Effects Regression, 2014-2024') +
+  theme_minimal() +
+    theme(axis.text.y = element_text(size = rel(1.8)),
+          axis.text.x = element_text(size = rel(1.8)),
+          axis.title.y =element_text(size = rel(1.8)),
+          plot.title = element_text(size = rel(2.2)),
+          plot.subtitle = element_text(size = rel(1.8)),
+          legend.text = element_text(size = rel(1.5)), 
+    legend.title = element_blank(),
+    legend.position = "right"  # Place the legend on the right
+  ) +
+  scale_color_manual(values = c('Standard' = 'black', 'Dyad cluster-robust' = 'grey'))  # Change blue to black and red to grey
+p
+
+# Save the plot with the desired filename
+  file_name <- paste0("emd_dyad_coefplot_.pdf")
+  ggsave(file_name, plot = p, width = 12, height=8)
+```
+
+## Coefplot means+EMD
+
+```{r}
+coefs <- coefs %>% 
+    dplyr::mutate(stat = "Mean Differences")
+
+coefs_emd <- coefs_emd %>% 
+    dplyr::mutate(stat = "EMD")
+
+coefs_all <- bind_rows(coefs, coefs_emd)
+
+
+# Position dodge setting
+dodge <- position_dodge(width = 0.5)
+
+p <- ggplot(coefs_all, aes(x = bhat, y = model, color = corr, shape = stat)) +
+  geom_point(size = rel(3), position = dodge) +
+  geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper), height = 0.2, position = dodge) +
+  geom_vline(xintercept = 0, color = 'black', size = 1) +
+  labs(x = '', y = '', title = 'Year Trend Coefficients', subtitle = 'Dyadic Fixed Effects Regression, 2014–2024') +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(size = rel(1.5)),
+    axis.text.x = element_text(size = rel(1.5)),
+    axis.title.y =element_text(size = rel(1.5)),
+    plot.title = element_text(size = rel(2)),
+    plot.subtitle = element_text(size = rel(1.5)),
+        legend.text = element_text(size = rel(1.3)), 
+    legend.title = element_blank(),
+    legend.position = "right"
+  ) +
+  scale_color_manual(values = c('Standard' = 'black', 'Dyad cluster-robust' = 'grey')) +
+  scale_shape_manual(values = c('Mean Differences' = 16, 'EMD' = 17))  # dot and triangle
+
+p
+
+# Save the plot with the desired filename
+  file_name <- paste0("mean_emd_dyad_coefplot_.pdf")
+  ggsave(file_name, plot = p, width = 12, height=8)
+
+
+```
+
+
+## Desc Plots
+
+```{r}
+load("emd_results14.RData")
+load("emd_results19.RData")
+load("emd_results24.RData")
+
+#append files
+emd_results<-rowbind(emd_results14, emd_results19, emd_results24) 
+
+avg_emd_by_issue_year <- emd_results %>%
+  group_by(issue, yr) %>%
+  summarize(avg_emd = mean(emd))
+
+
+plot<-ggplot(avg_emd_by_issue_year, aes(x = yr, y = avg_emd, group = issue)) +
+  geom_point(aes(shape=issue, color=issue), size = rel(1.5)) +  # Circle points for all issues
+  geom_line(aes(color = issue, linetype = issue), size = rel(0.4)) +  # Line with different colors and linetypes
+  theme_minimal() + 
+  labs(title = "Earth Mover's Distances by Issue and EES wave", 
+       x = " ", 
+       y = "Mean EM distances") +
+  theme_minimal()+
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels
+    legend.position = "bottom",  # Move legend to the bottom
+    legend.title = element_blank()  # Remove legend title  
+  ) +
+  scale_x_continuous(breaks = c(2014, 2019, 2024)) +  # Specific x-axis breaks
+  scale_color_manual(values = c("issue_state_int" = "gray86",
+                                "issue_redistr" = "gray76",
+                                "issue_samesex" = "gray20",
+                                "issue_immig" = "gray2",
+                                "issue_clim" = "gray50"),
+                     labels = issue_names) +  # Custom color mapping
+  scale_linetype_manual(values = c("issue_state_int" = "dotdash",
+                                   "issue_redistr" = "solid",
+                                   "issue_samesex" = "solid",
+                                   "issue_immig" = "longdash",
+                                   "issue_clim" = "dotted"),
+                     labels = issue_names) +
+  scale_shape_manual(values = c("issue_state_int" = "square",
+                                "issue_redistr" = "circle",
+                                "issue_samesex" = "cross",
+                                "issue_immig" = "diamond",
+                                "issue_clim" = "triangle"),
+                     labels = issue_names) +
+    labs(color  = issue_names, linetype = issue_names, shape=issue_names)
+
+plot
+
+ ggsave(filename ="overallEMD.pdf", plot = plot, width = 8, height = 6)
+
+```
+
+
+### Appendix
+
+#### country averages
+
+```{r}
+#by country
+avg_emd_by_country2 <- emd_results %>%
+  group_by(country2, yr, issue) %>%
+  summarise(avg_emd = mean(emd), .groups = 'drop')
+
+# Group the countries in sets of four
+unique_countries <- unique(avg_emd_by_country2$country2)
+country_groups <- split(unique_countries, ceiling(seq_along(unique_countries) / 4))
+
+# Function to create a 2-by-2 plot for a group of countries
+plot_group_and_save <- function(country_group, group_index) {
+  plots <- list()  # Initialize a list to hold individual plots
+  
+  for (country in country_group) {
+    # Filter data for the specific country
+    data_filtered <- avg_emd_by_country2 %>%
+      filter(country2 == !!country)
+    
+    # Create the plot for the country
+    plot <- ggplot(data_filtered, aes(x = yr, y = avg_emd, group = issue)) +
+      geom_point(aes(shape = issue, color = issue), size = rel(1.5)) +
+      geom_line(aes(color = issue, linetype = issue), size = rel(0.4)) +
+      theme_minimal() +
+      labs(title = country,  # Set the title to the country name
+           x = "Year", 
+           y = "Mean EM distances") +
+      theme(
+        plot.title = element_text(size = 18, face = "bold", hjust = 0.5),  # Title customization
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom",
+        legend.title = element_blank()
+      ) +
+      scale_x_continuous(breaks = c(2014, 2019, 2024)) +
+      scale_color_manual(values = c("issue_state_int" = "gray86",
+                                    "issue_redistr" = "gray76",
+                                    "issue_samesex" = "gray20",
+                                    "issue_immig" = "gray2",
+                                    "issue_clim" = "gray50"),
+                         labels = issue_names) +
+      scale_linetype_manual(values = c("issue_state_int" = "dotdash",
+                                       "issue_redistr" = "solid",
+                                       "issue_samesex" = "solid",
+                                       "issue_immig" = "longdash",
+                                       "issue_clim" = "dotted"),
+                            labels = issue_names) +
+      scale_shape_manual(values = c("issue_state_int" = 15,
+                                    "issue_redistr" = 16,
+                                    "issue_samesex" = 17,
+                                    "issue_immig" = 18,
+                                    "issue_clim" = 19),
+                         labels = issue_names)
+    
+    # Add the plot to the list
+    plots[[country]] <- plot
+  }
+  
+  # Arrange the plots in a 2-by-2 grid using grid.arrange
+  pdf(file = paste0("avgEMD_Group_", group_index, ".pdf"), width = 14, height = 10)
+  do.call(grid.arrange, c(plots, ncol = 2, nrow = 2))
+  dev.off()
+}
+
+# Loop through each group and create the 2-by-2 plots
+for (i in seq_along(country_groups)) {
+  plot_group_and_save(country_groups[[i]], i)
+}
+
+
+```
+
+#### dyads
+
+```{r}
+
+### REDISTR ###
+
+# Filter the dataset for 'issue_redistr'
+filtered_data <- emd_results %>%
+  filter(issue == "issue_redistr") %>%
+  mutate(year_short = paste0("'", substr(yr, 3, 4)))  # Create short year labels ('14, '19, '24)
+
+# Get unique country1 levels
+country2_levels <- unique(filtered_data$country2)
+
+# Create a list of plots for each country1 level
+plots <- list()
+
+# Loop through each country1 level
+for (country2_level in country2_levels) {
+  
+  # Filter data for the current country1 level
+  country2_data <- filtered_data %>% filter(country2 == country2_level)
+  
+  # Create the plot with faceting
+  p <- ggplot(country2_data, aes(x = yr, y = emd, group = 1)) +
+    geom_point(color = "black", size = rel(0.8)) +  # Smaller dots, all black
+    geom_line(color = "black", size = rel(0.5)) +  # Line connecting dots
+    geom_text(aes(label = year_short), vjust = -1, size = rel(2.5)) +  # Add year labels on top of dots
+    scale_x_continuous(breaks = NULL) +  # Remove x-axis year labels
+    labs(
+      title = "Attitudes towards Redistribution",
+      subtitle = paste0("Dyadic EM distances - ", country2_level),  # Add country1 level as subtitle
+      x = "",
+      y = "EMD Value"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_blank(),  # Remove x-axis tick text
+      axis.ticks.x = element_blank(), # Remove x-axis ticks
+      axis.text.y = element_text(size = 8)
+    ) +
+    facet_wrap(~country1, ncol = 5)  # Facet by country2 with maximum 4 columns
+  
+
+ggsave(filename = paste0("dyadicEMD_redist_", country2_level, ".pdf"), plot = p,width = 8, height = 6)
+  
+}
+
+
+### IMMIG ###
+
+# Filter the dataset for 'issue_redistr'
+filtered_data <- emd_results %>%
+  filter(issue == "issue_immig") %>%
+  mutate(year_short = paste0("'", substr(yr, 3, 4)))  # Create short year labels ('14, '19, '24)
+
+# Get unique country1 levels
+country2_levels <- unique(filtered_data$country2)
+
+# Create a list of plots for each country1 level
+plots <- list()
+
+# Loop through each country1 level
+for (country2_level in country2_levels) {
+  
+  # Filter data for the current country1 level
+  country2_data <- filtered_data %>% filter(country2 == country2_level)
+  
+  # Create the plot with faceting
+  p <- ggplot(country2_data, aes(x = yr, y = emd, group = 1)) +
+    geom_point(color = "black", size = rel(0.8)) +  # Smaller dots, all black
+    geom_line(color = "black", size = rel(0.5)) +  # Line connecting dots
+    geom_text(aes(label = year_short), vjust = -1, size = rel(2.5)) +  # Add year labels on top of dots
+    scale_x_continuous(breaks = NULL) +  # Remove x-axis year labels
+    labs(
+      title = "Attitudes towards Immigration",
+      subtitle = paste0("Dyadic EM distances - ", country2_level),  # Add country1 level as subtitle
+      x = "",
+      y = "EMD Value"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_blank(),  # Remove x-axis tick text
+      axis.ticks.x = element_blank(), # Remove x-axis ticks
+      axis.text.y = element_text(size = 8)
+    ) +
+    facet_wrap(~country1, ncol = 5)  # Facet by country2 with maximum 4 columns
+  
+
+ggsave(filename = paste0("dyadicEMD_immig_", country2_level, ".pdf"), plot = p,width = 8, height = 6)
+  
+}
+
+
+```
+
+
+# Predictive Modelling Plots
+## Load & Reshape files
+
+```{r}
+
+#ALL countries
+predstat_all_14<-read.csv("performance_metrics_all_countries14.csv") %>%
+  mutate(year=2014)
+predstat_all_19<-read.csv("performance_metrics_all_countries19.csv") %>%
+  mutate(year=2019)
+predstat_all_24<-read.csv("performance_metrics_all_countries24.csv") %>%
+  mutate(year=2024)
+predstat_all <- rbind(predstat_all_14, predstat_all_19, predstat_all_24) %>%
+  dplyr::mutate(Accuracy_perc = Accuracy*100)
+
+
+nwe_cluster <- c("DK", "FI", "SE", "AT", "BE", "FR", "DE", "IE", "LU", "NL", "UK")
+ee_cluster <- c("BG", "HR", "CZ", "EE", "HU", "LV", "LT", "PL", "RO", "SK", "SI")
+se_cluster <- c("CY", "EL", "IT", "MT", "PT", "ES")
+eu15_cluster <- c("AT", "BE", "DK", "FI", "FR", "DE", "EL", "IE", "IT", "LU", "NL", "PT", "ES", "SE", "UK")
+
+predstat_all <- predstat_all %>%
+  mutate(
+    region = case_when(
+      Country %in% nwe_cluster ~ "NWE",
+      Country %in% ee_cluster ~ "EE",
+      Country %in% se_cluster ~ "SE",
+      TRUE ~ "Other"
+    ),
+    eu_15 = ifelse(Country %in% eu15_cluster, 1, 0)
+  )
+
+
+predstat_all$region <- relevel(as.factor(predstat_all$region), ref = "NWE")
+
+```
+
+##Regressions
+```{r}
+mod <- lm(Accuracy_perc ~ year + as.factor(Country), data=predstat_all)
+summary(mod)
+
+mod_stint <- lm(Accuracy_perc ~ year  + as.factor(Country), data = subset(predstat_all, Issue == "issue_state_int"))
+summary(mod_stint)
+
+
+mod_red <- lm(Accuracy_perc ~ year  + as.factor(Country), data = subset(predstat_all, Issue == "issue_redistr"))
+summary(mod_red)
+
+
+mod_clim <- lm(Accuracy_perc ~ year  + as.factor(Country), data = subset(predstat_all, Issue == "issue_clim"))
+summary(mod_clim)
+
+mod_im <- lm(Accuracy_perc ~ year  + as.factor(Country), data = subset(predstat_all, Issue == "issue_immig"))
+summary(mod_im)
+
+mod_samesex <- lm(Accuracy_perc ~ year  + as.factor(Country), data = subset(predstat_all, Issue == "issue_samesex"))
+summary(mod_samesex)
+
+# Interactions
+
+mod_stint_int <- lm(Accuracy_perc ~ year*as.factor(region)  + as.factor(Country), data = subset(predstat_all, Issue == "issue_state_int"))
+summary(mod_stint_int)
+
+mod_red_int <- lm(Accuracy_perc ~ year*as.factor(region)  + as.factor(Country), data = subset(predstat_all, Issue == "issue_redistr"))
+summary(mod_red_int)
+
+mod_clim_int <- lm(Accuracy_perc ~ year*as.factor(region)  + as.factor(Country), data = subset(predstat_all, Issue == "issue_clim"))
+summary(mod_clim_int)
+
+mod_im_int <- lm(Accuracy_perc ~ year*as.factor(region)  + as.factor(Country), data = subset(predstat_all, Issue == "issue_immig"))
+summary(mod_im_int)
+
+mod_samesex_int <- lm(Accuracy_perc ~ year*as.factor(region)  + as.factor(Country), data = subset(predstat_all, Issue == "issue_samesex"))
+summary(mod_samesex_int)
+
+
+# Interaction EU15
+
+# State intervention
+mod_stint_int15 <- lm(Accuracy_perc ~ year * eu_15 + as.factor(Country), 
+                      data = subset(predstat_all, Issue == "issue_state_int"))
+summary(mod_stint_int15)
+
+# Redistribution
+mod_red_int15 <- lm(Accuracy_perc ~ year * eu_15 + as.factor(Country), 
+                    data = subset(predstat_all, Issue == "issue_redistr"))
+summary(mod_red_int15)
+
+# Climate
+mod_clim_int15 <- lm(Accuracy_perc ~ year * eu_15 + as.factor(Country), 
+                     data = subset(predstat_all, Issue == "issue_clim"))
+summary(mod_clim_int15)
+
+# Immigration
+mod_im_int15 <- lm(Accuracy_perc ~ year * eu_15 + as.factor(Country), 
+                   data = subset(predstat_all, Issue == "issue_immig"))
+summary(mod_im_int15)
+
+# Same-sex marriage
+mod_samesex_int15 <- lm(Accuracy_perc ~ year * eu_15 + as.factor(Country), 
+                        data = subset(predstat_all, Issue == "issue_samesex"))
+summary(mod_samesex_int15)
+
+
+stargazer(mod_stint, mod_red, mod_clim, mod_im, mod_samesex, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="predREGmods.tex")
+stargazer(mod_stint, mod_red, mod_clim, mod_im, mod_samesex, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="predREGmods.htm")
+
+
+stargazer(mod_stint_int, mod_red_int, mod_clim_int, mod_im_int, mod_samesex_int, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="predREGmods_int.tex")
+stargazer(mod_stint_int, mod_red_int, mod_clim_int, mod_im_int, mod_samesex_int, ord.intercepts = TRUE, t.auto=FALSE, p.auto=FALSE, report = "vc*s", out="predREGmods_int.htm")
+```
+
+```{r}
+
+predstat_all <- rbind(predstat_all_14, predstat_all_19, predstat_all_24) %>%
+  dplyr::mutate(Accuracy = Accuracy*100)
+
+# Calculate averages and add the row for each Issue-Year
+predstat_avg <- predstat_all %>%
+  group_by(Issue, year) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE)) %>%
+  mutate(Country = "ALL")
+
+# Combine the original data with the new average rows
+predstat_all <- bind_rows(predstat_all, predstat_avg)
+
+#CLUSTERS
+
+predstat_allonly<- predstat_all %>% filter(Country == 'ALL') %>% 
+  dplyr::rename(cluster = Country)
+
+nwe_cluster <- c("DK", "FI", "SE", "AT", "BE", "FR", "DE", "IE", "LU", "NL", "UK")
+ee_cluster <- c("BG", "HR", "CZ", "EE", "HU", "LV", "LT", "PL", "RO", "SK", "SI")
+se_cluster <- c("CY", "EL", "IT", "MT", "PT", "ES")
+eu15_cluster <- c("AT", "BE", "DK", "FI", "FR", "DE", "EL", "IE", "IT", "LU", "NL", "PT", "ES", "SE", "UK")
+
+# NWE 2014
+
+predstat_nwe_14_own<-read.csv("performance_metrics_nwe_countries14.csv") %>%
+   group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+    mutate(year=2014,
+           cluster="N-W.E.")
+
+predstat_nwe_14<-predstat_all %>% filter(Country %in% nwe_cluster  & year ==2014) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+    mutate(year=2014,
+           cluster="N-W.E.")
+
+# NWE 2019
+predstat_nwe_19_own <- read.csv("performance_metrics_nwe_countries19.csv") %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2019,
+         cluster = "N-W.E.")
+
+predstat_nwe_19 <- predstat_all %>% filter(Country %in% nwe_cluster & year == 2019) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2019,
+         cluster = "N-W.E.")
+
+
+# NWE 2024
+predstat_nwe_24_own <- read.csv("performance_metrics_nwe_countries24.csv") %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2024,
+         cluster = "N-W.E.")
+
+predstat_nwe_24 <- predstat_all %>% filter(Country %in% nwe_cluster & year == 2024) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2024,
+         cluster = "N-W.E.")
+
+# SE 2014
+predstat_se_14_own <- read.csv("performance_metrics_se_countries14.csv") %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2014,
+         cluster = "S.E.")
+
+predstat_se_14 <- predstat_all %>% filter(Country %in% se_cluster & year == 2014) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2014,
+         cluster = "S.E.")
+
+# SE 2019
+predstat_se_19_own <- read.csv("performance_metrics_se_countries19.csv") %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2019,
+         cluster = "S.E.")
+
+predstat_se_19 <- predstat_all %>% filter(Country %in% se_cluster & year == 2019) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2019,
+         cluster = "S.E.")
+
+# SE 2024
+predstat_se_24_own <- read.csv("performance_metrics_se_countries24.csv") %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2024,
+         cluster = "S.E.")
+
+predstat_se_24 <- predstat_all %>% filter(Country %in% se_cluster & year == 2024) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2024,
+         cluster = "S.E.")
+# EE 2014
+predstat_ee_14_own <- read.csv("performance_metrics_ee_countries14.csv") %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2014,
+         cluster = "E.E.")
+
+predstat_ee_14 <- predstat_all %>% filter(Country %in% ee_cluster & year == 2014) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2014,
+         cluster = "E.E.")
+
+# EE 2019
+predstat_ee_19_own <- read.csv("performance_metrics_ee_countries19.csv") %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2019,
+         cluster = "E.E.")
+
+predstat_ee_19 <- predstat_all %>% filter(Country %in% ee_cluster & year == 2019) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2019,
+         cluster = "E.E.")
+
+# EE 2024
+predstat_ee_24_own <- read.csv("performance_metrics_ee_countries24.csv") %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2024,
+         cluster = "E.E.")
+
+predstat_ee_24 <- predstat_all %>% filter(Country %in% ee_cluster & year == 2024) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2024,
+         cluster = "E.E.")
+
+
+# EU15 2014
+predstat_eu15_14_own <- read.csv("performance_metrics_eu15_countries14.csv") %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2014,
+         cluster = "EU15")
+
+predstat_eu15_14 <- predstat_all %>% filter(Country %in% eu15_cluster & year == 2014) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+  mutate(year = 2014,
+         cluster = "EU15")
+  
+predstat_eu15_19_own<-read.csv("performance_metrics_eu15_countries19.csv") %>%
+    group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+    mutate(year=2019,
+           cluster="EU15")
+
+predstat_eu15_19<-predstat_all %>% filter(Country %in% eu15_cluster & year ==2019) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+    mutate(year=2019,
+           cluster="EU15")
+
+predstat_eu15_24_own<-read.csv("performance_metrics_eu15_countries24.csv") %>%
+    group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE)*100,
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+    mutate(year=2024,
+           cluster="EU15")
+
+predstat_eu15_24<-predstat_all %>% filter(Country %in% eu15_cluster & year ==2024) %>%
+  group_by(Issue) %>%
+  summarise(Accuracy = mean(Accuracy, na.rm = TRUE),
+            Precision = mean(Precision, na.rm = TRUE),
+            Recall = mean(Recall, na.rm = TRUE),
+            FScore = mean(FScore, na.rm = TRUE))  %>%
+    mutate(year=2024,
+           cluster="EU15")
+
+predstat_cluster <- rbind(predstat_nwe_14, predstat_nwe_19, predstat_nwe_24,predstat_se_14, predstat_se_19,
+                          predstat_se_24, predstat_ee_14,  predstat_ee_19, predstat_ee_24, predstat_eu15_14,
+                          predstat_eu15_19,predstat_eu15_24, predstat_allonly)
+
+
+predstat_cluster2 <- rbind(predstat_nwe_14_own, predstat_nwe_19_own, predstat_nwe_24_own,predstat_se_14_own, predstat_se_19_own,
+                          predstat_se_24_own, predstat_ee_14_own,  predstat_ee_19_own, predstat_ee_24_own, predstat_eu15_14_own,
+                          predstat_eu15_19_own,predstat_eu15_24_own)
+
+```
+
+## Plots
+
+```{r}
+# Make sure Country is factor (for plotting)
+predstat_all$Country <- as.factor(predstat_all$Country)
+predstat_cluster$cluster <- as.factor(predstat_cluster$cluster)
+predstat_cluster2$cluster <- as.factor(predstat_cluster2$cluster)
+
+# Define issue names
+issue_names <- c(
+  issue_state_int = "State Intervention in the Economy",
+  issue_redistr = "Redistribution",
+  issue_samesex = "Same-Sex Marriage",
+  issue_immig = "Immigration",
+  issue_clim = "Environmental Protection"
+)
+
+# Update Issue names in the dataset
+predstat_all$Issue <- factor(predstat_all$Issue, levels = names(issue_names))
+levels(predstat_all$Issue) <- issue_names
+predstat_cluster$Issue <- factor(predstat_cluster$Issue, levels = names(issue_names))
+levels(predstat_cluster$Issue) <- issue_names
+predstat_cluster2$Issue <- factor(predstat_cluster2$Issue, levels = names(issue_names))
+levels(predstat_cluster2$Issue) <- issue_names
+```
+
+### By Country
+#### Accuracy
+
+```{r}
+# Get a list of unique issues
+issues <- unique(predstat_all$Issue)
+
+# Loop through each issue and create a separate plot
+for (issue in issues) {
+  # Filter the data for the current issue
+  data_issue <- predstat_all %>% filter(Issue == issue)
+  
+  # Create the plot for the current issue
+  p <- ggplot(data_issue, aes(x = year, y = Accuracy, group = Country, color = Country)) +
+    geom_line(aes(linetype = ifelse(Country == "ALL", "solid", "solid"),
+                  size = ifelse(Country == "ALL", 1.5, 0.2)),
+              show.legend = FALSE) +
+    geom_text(data = data_issue %>% group_by(Country) %>% filter(year == max(year)), 
+              aes(label = Country, hjust = -0.2), 
+              show.legend = FALSE, 
+              size = rel(3)) +
+    scale_size_identity() +
+    scale_linetype_identity() +
+    scale_color_manual(values = c("ALL" = "black", rep("gray86", length(unique(data_issue$Country)) - 1))) +
+        scale_x_continuous(breaks = seq(min(data_issue$year), max(data_issue$year), by = 5)) +
+    theme_minimal() +
+     theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "plain", size = rel(2)),
+          axis.text.y = element_text(face = "plain", size = rel(2)),
+          axis.title.x = element_text(face = "plain", size = rel(1.5)),
+          axis.title.y = element_text(face = "plain", size = rel(1.5)),
+          plot.title = element_text(size = rel(1.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1), face = "bold"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "none") +
+    labs(title = paste(issue),
+         x = " ",
+         y = "Accuracy (% Correctly Classified)")
+  
+  # Print the plot
+  print(p)
+  
+  # # Optionally save each plot to a file
+  ggsave(filename = paste0("predacc_", gsub(" ", "_", issue), ".pdf"), plot = p)
+}
+
+```
+
+```{r}
+#same y axis
+
+# Calculate overall min and max for Accuracy (excluding NA)
+y_range <- range(predstat_all$Accuracy, na.rm = TRUE)
+
+for (issue in issues) {
+  data_issue <- predstat_all %>% filter(Issue == issue)
+  
+  p <- ggplot(data_issue, aes(x = year, y = Accuracy, group = Country, color = Country)) +
+    geom_line(aes(linetype = ifelse(Country == "ALL", "solid", "solid"),
+                  size = ifelse(Country == "ALL", 1.5, 0.2)),
+              show.legend = FALSE) +
+    # geom_text(data = data_issue %>% group_by(Country) %>% filter(year == max(year)), 
+    #           aes(label = Country, hjust = -0.2), 
+    #           show.legend = FALSE, 
+    #           size = rel(3.5)) +
+    scale_size_identity() +
+    scale_linetype_identity() +
+    scale_color_manual(values = c("ALL" = "black", rep("gray86", length(unique(data_issue$Country)) - 1))) +
+    scale_x_continuous(breaks = seq(min(data_issue$year), max(data_issue$year), by = 5)) +
+    scale_y_continuous(limits = y_range) +  # <- Force same y-axis across all plots
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "plain", size = rel(2)),
+          axis.text.y = element_text(face = "plain", size = rel(2)),
+          axis.title.x = element_text(face = "plain", size = rel(1.5)),
+          axis.title.y = element_text(face = "plain", size = rel(1.5)),
+          plot.title = element_text(size = rel(1.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1), face = "bold"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "none") +
+    labs(title = paste(issue),
+         x = " ",
+         y = "Accuracy (% Correctly Classified)")
+  
+  print(p)
+  ggsave(filename = paste0("predacc_samey_", gsub(" ", "_", issue), ".pdf"), plot = p)
+}
+
+```
+
+
+#### F-Scores
+
+```{r}
+# Get a list of unique issues
+issues <- unique(predstat_all$Issue)
+
+# Loop through each issue and create a separate plot
+for (issue in issues) {
+  # Filter the data for the current issue
+  data_issue <- predstat_all %>% filter(Issue == issue)
+  
+  # Create the plot for the current issue
+  p <- ggplot(data_issue, aes(x = year, y = FScore, group = Country, color = Country)) +
+    geom_line(aes(linetype = ifelse(Country == "ALL", "solid", "solid"),
+                  size = ifelse(Country == "ALL", 1.5, 0.2)),
+              show.legend = FALSE) +
+    geom_text(data = data_issue %>% group_by(Country) %>% filter(year == max(year)), 
+              aes(label = Country, hjust = -0.2), 
+              show.legend = FALSE, 
+              size = rel(3)) +
+    scale_size_identity() +
+    scale_linetype_identity() +
+    scale_color_manual(values = c("ALL" = "black", rep("gray86", length(unique(data_issue$Country)) - 1))) +
+        scale_x_continuous(breaks = seq(min(data_issue$year), max(data_issue$year), by = 5)) +
+    theme_minimal() +
+         theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "plain", size = rel(2)),
+          axis.text.y = element_text(face = "plain", size = rel(2)),
+          axis.title.x = element_text(face = "plain", size = rel(1.5)),
+          axis.title.y = element_text(face = "plain", size = rel(1.5)),
+          plot.title = element_text(size = rel(1.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1), face = "bold"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "none") +
+    labs(title = paste(issue),
+         x = " ",
+         y = "F1-Score")
+  
+  # Print the plot
+  print(p)
+  
+    # # Optionally save each plot to a file
+  ggsave(filename = paste0("predf1_", gsub(" ", "_", issue), ".pdf"), plot = p)
+}
+```
+
+
+
+### By Cluster
+#### Accuracy
+
+```{r}
+# Get a list of unique issues
+issues <- unique(predstat_cluster$Issue)
+
+# Loop through each issue and create a separate plot
+for (issue in issues) {
+  # Filter the data for the current issue
+  data_issue <- predstat_cluster %>% filter(Issue == issue)
+  
+  # Create the plot for the current issue
+  p <- ggplot(data_issue, aes(x = year, y = Accuracy, group = cluster, color = cluster)) +
+    geom_line(aes(linetype = ifelse(cluster == "ALL", "solid", "solid"),
+                  size = ifelse(cluster == "ALL", 1.5, 0.2)),
+              show.legend = FALSE) +
+    geom_text(data = data_issue %>% group_by(cluster) %>% filter(year == max(year)), 
+              aes(label = cluster, hjust = -0.2), 
+              show.legend = FALSE, 
+              size = rel(3)) +
+    scale_size_identity() +
+    scale_linetype_identity() +
+    scale_color_manual(values = c("ALL" = "black", rep("gray86", length(unique(data_issue$cluster)) - 1))) +
+        scale_x_continuous(breaks = seq(min(data_issue$year), max(data_issue$year), by = 5)) +
+    theme_minimal() +
+         theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "plain", size = rel(2)),
+          axis.text.y = element_text(face = "plain", size = rel(2)),
+          axis.title.x = element_text(face = "plain", size = rel(1.5)),
+          axis.title.y = element_text(face = "plain", size = rel(1.5)),
+          plot.title = element_text(size = rel(1.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1), face = "bold"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "none") +
+    labs(title = paste(issue),
+         x = " ",
+         y = "Accuracy (% Correctly Classified)")
+  
+  # Print the plot
+  print(p)
+  
+  # # Optionally save each plot to a file
+  ggsave(filename = paste0("predacc_", gsub(" ", "_", issue), "_clust", ".pdf"), plot = p)
+}
+
+```
+
+#### F-Scores
+
+```{r}
+# Get a list of unique issues
+issues <- unique(predstat_cluster$Issue)
+
+# Loop through each issue and create a separate plot
+for (issue in issues) {
+  # Filter the data for the current issue
+  data_issue <- predstat_cluster %>% filter(Issue == issue)
+  
+  # Create the plot for the current issue
+  p <- ggplot(data_issue, aes(x = year, y = FScore, group = cluster, color = cluster)) +
+    geom_line(aes(linetype = ifelse(cluster == "ALL", "solid", "solid"),
+                  size = ifelse(cluster == "ALL", 1.5, 0.2)),
+              show.legend = FALSE) +
+    geom_text(data = data_issue %>% group_by(cluster) %>% filter(year == max(year)), 
+              aes(label = cluster, hjust = -0.2), 
+              show.legend = FALSE, 
+              size =rel(3)) +
+    scale_size_identity() +
+    scale_linetype_identity() +
+    scale_color_manual(values = c("ALL" = "black", rep("gray86", length(unique(data_issue$cluster)) - 1))) +
+        scale_x_continuous(breaks = seq(min(data_issue$year), max(data_issue$year), by = 5)) +
+    theme_minimal() +
+         theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "plain", size = rel(2)),
+          axis.text.y = element_text(face = "plain", size = rel(2)),
+          axis.title.x = element_text(face = "plain", size = rel(1.5)),
+          axis.title.y = element_text(face = "plain", size = rel(1.5)),
+          plot.title = element_text(size = rel(1.5), face = "bold"),
+          plot.subtitle = element_text(size = rel(1), face = "bold"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "none") +
+    labs(title = paste(issue),
+         x = " ",
+         y = "F1-Score")
+  
+  # Print the plot
+  print(p)
+  
+  # # Optionally save each plot to a file
+  # ggsave(filename = paste0("plot_", gsub(" ", "_", issue), ".png"), plot = p)
+}
+```
+
+
+
+
+### By Cluster: Within-Region Preds
+#### Accuracy
+
+```{r}
+# Get a list of unique issues
+issues <- unique(predstat_cluster2$Issue)
+
+# Loop through each issue and create a separate plot
+for (issue in issues) {
+  # Filter the data for the current issue
+  data_issue <- predstat_cluster2 %>% filter(Issue == issue)
+  
+  # Create the plot for the current issue
+  p <- ggplot(data_issue, aes(x = year, y = Accuracy, group = cluster, color = cluster)) +
+    geom_line(aes(linetype = ifelse(cluster == "ALL", "solid", "solid"),
+                  size = ifelse(cluster == "ALL", 1.5, 0.2)),
+              show.legend = FALSE) +
+    geom_text(data = data_issue %>% group_by(cluster) %>% filter(year == max(year)), 
+              aes(label = cluster, hjust = -0.2), 
+              show.legend = FALSE, 
+              size = rel(3)) +
+    scale_size_identity() +
+    scale_linetype_identity() +
+    scale_color_manual(values = c("ALL" = "black", rep("gray86", length(unique(data_issue$cluster)) - 1))) +
+        scale_x_continuous(breaks = seq(min(data_issue$year), max(data_issue$year), by = 5)) +
+    theme_minimal() +
+         theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "plain", size = rel(2)),
+          axis.text.y = element_text(face = "plain", size = rel(2)),
+          axis.title.x = element_text(face = "plain", size = rel(1.5)),
+          axis.title.y = element_text(face = "plain", size = rel(1.5)),
+          plot.title = element_text(size = rel(1), face = "bold"),
+          plot.subtitle = element_text(size = rel(1), face = "bold"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "none") +
+    labs(title = paste(issue),
+         subtitle = "Within-region",
+         x = " ",
+         y = "Accuracy (% Correctly Classified)")
+  
+  # Print the plot
+  print(p)
+  
+  # # Optionally save each plot to a file
+  ggsave(filename = paste0("predacc_", gsub(" ", "_", issue), "_clust_within", ".pdf"), plot = p)
+}
+
+```
+
+#### F-Scores
+
+```{r}
+# Get a list of unique issues
+issues <- unique(predstat_cluster2$Issue)
+
+# Loop through each issue and create a separate plot
+for (issue in issues) {
+  # Filter the data for the current issue
+  data_issue <- predstat_cluster2 %>% filter(Issue == issue)
+  
+  # Create the plot for the current issue
+  p <- ggplot(data_issue, aes(x = year, y = FScore, group = cluster, color = cluster)) +
+    geom_line(aes(linetype = ifelse(cluster == "ALL", "solid", "solid"),
+                  size = ifelse(cluster == "ALL", 1.5, 0.2)),
+              show.legend = FALSE) +
+    geom_text(data = data_issue %>% group_by(cluster) %>% filter(year == max(year)), 
+              aes(label = cluster, hjust = -0.2), 
+              show.legend = FALSE, 
+              size =rel(3)) +
+    scale_size_identity() +
+    scale_linetype_identity() +
+    scale_color_manual(values = c("ALL" = "black", rep("gray86", length(unique(data_issue$cluster)) - 1))) +
+        scale_x_continuous(breaks = seq(min(data_issue$year), max(data_issue$year), by = 5)) +
+    theme_minimal() +
+         theme(axis.text.x = element_text(angle = 45, hjust = 1, face = "plain", size = rel(2)),
+          axis.text.y = element_text(face = "plain", size = rel(2)),
+          axis.title.x = element_text(face = "plain", size = rel(1.5)),
+          axis.title.y = element_text(face = "plain", size = rel(1.5)),
+          plot.title = element_text(size = rel(1), face = "bold"),
+          plot.subtitle = element_text(size = rel(1), face = "bold"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "none") +
+    labs(title = paste(issue),
+         subtitle = "Within-region",
+         x = " ",
+         y = "F1-Score")
+  
+  # Print the plot
+  print(p)
+  
+  # # Optionally save each plot to a file
+  # ggsave(filename = paste0("plot_", gsub(" ", "_", issue), ".png"), plot = p)
+}
+```

@@ -13,6 +13,10 @@ setwd("path/to/your/folder")
 ```
 
 3. Run the script
+   
+```r
+source("sorace_zaun_Rcode.R")
+```
 
 ## Data Files
 *leg_data_wordscores.csv*
